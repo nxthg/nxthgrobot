@@ -21,6 +21,7 @@ import lejos.robotics.mapping.NavigationModel.NavEvent;
  * MapCommand shows a mapped area and allow navigation commands to be sent to the NXT.
  * 
  * The NXT must run the MapTest sample.
+ * ottos Test
  * 
  * @author Lawrie Griffiths
  */
