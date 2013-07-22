@@ -10,12 +10,9 @@ import java.io.IOException;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 
+import de.nxthg.pccontrol.NXTHGNavigationModel.NavEvent;
+
 import lejos.pc.comm.SystemContext;
-import lejos.robotics.mapping.MenuAction;
-import lejos.robotics.mapping.NavigationModel;
-import lejos.robotics.mapping.NavigationPanel;
-import lejos.robotics.mapping.SliderPanel;
-import lejos.robotics.mapping.NavigationModel.NavEvent;
 
 /**
  * MapCommand shows a mapped area and allow navigation commands to be sent to the NXT.
@@ -26,7 +23,7 @@ import lejos.robotics.mapping.NavigationModel.NavEvent;
  * @author Lawrie Griffiths
  */
 @SuppressWarnings("deprecation")
-public class NXTHGMapCommand extends NavigationPanel {
+public class NXTHGMapCommand extends NXTHGNavigationPanel {
 	private static final long serialVersionUID = 1L;
 
 	private static final int FRAME_WIDTH = 1150;
@@ -36,7 +33,7 @@ public class NXTHGMapCommand extends NavigationPanel {
 	private static final Dimension MAP_AREA_SIZE = new Dimension(800,550);
 	private static final String FRAME_TITLE = "NXJ Map Command";
 	
-	private SliderPanel setHeading, rotate, travelSpeed, rotateSpeed;
+	private NXTHGSliderPanel setHeading, rotate, travelSpeed, rotateSpeed;
 	private JPanel leftPanel = new JPanel();
 	private JPanel rightPanel = new JPanel();
   
@@ -88,16 +85,16 @@ public class NXTHGMapCommand extends NavigationPanel {
 	    leftPanel.add(loadPanel);
 	    connectPanel.setPreferredSize(new Dimension(300,90));
 	    leftPanel.add(connectPanel);
-	    setHeading = new SliderPanel(model, NavEvent.SET_POSE,"Set Heading:", "Set", 360);
+	    setHeading = new NXTHGSliderPanel(model, NavEvent.SET_POSE,"Set Heading:", "Set", 360);
 	    setHeading.setPreferredSize(new Dimension(280,80));
 	    commandPanel.add(setHeading);
-	    rotate = new SliderPanel(model, NavEvent.ROTATE_TO, "Rotate To:", "Go", 360);
+	    rotate = new NXTHGSliderPanel(model, NavEvent.ROTATE_TO, "Rotate To:", "Go", 360);
 	    rotate.setPreferredSize(new Dimension(280,80));
 	    commandPanel.add(rotate);
-	    travelSpeed = new SliderPanel(model, NavEvent.TRAVEL_SPEED, "Travel Speed", "Set", Integer.parseInt(props.getProperty(KEY_MAX_TRAVEL_SPEED, "60")));
+	    travelSpeed = new NXTHGSliderPanel(model, NavEvent.TRAVEL_SPEED, "Travel Speed", "Set", Integer.parseInt(props.getProperty(KEY_MAX_TRAVEL_SPEED, "60")));
 	    travelSpeed.setPreferredSize(new Dimension(280,80));
 	    commandPanel.add(travelSpeed);
-	    rotateSpeed = new SliderPanel(model, NavEvent.ROTATE_SPEED, "Rotate Speed", "Set", Integer.parseInt(props.getProperty(KEY_MAX_ROTATE_SPEED, "360")));
+	    rotateSpeed = new NXTHGSliderPanel(model, NavEvent.ROTATE_SPEED, "Rotate Speed", "Set", Integer.parseInt(props.getProperty(KEY_MAX_ROTATE_SPEED, "360")));
 	    rotateSpeed.setPreferredSize(new Dimension(280,80));
 	    commandPanel.add(rotateSpeed);	    
 	    commandPanel.setPreferredSize(new Dimension(300,370));
@@ -139,10 +136,10 @@ public class NXTHGMapCommand extends NavigationPanel {
 	 */
 	@Override
 	protected void popupMenuItems(Point p, JPopupMenu menu) {
-	    menu.add(new MenuAction(NavigationModel.NavEvent.GOTO, "Go To", p, model, this));
-	    menu.add(new MenuAction(NavigationModel.NavEvent.SET_POSE, "Place robot", p, model, this));
-	    menu.add(new MenuAction(NavigationModel.NavEvent.ADD_WAYPOINT, "Add Waypoint", p, model, this));
-	    menu.add(new MenuAction(NavigationModel.NavEvent.SET_TARGET, "Set target", p, model, this));
+	    menu.add(new NXTHGMenuAction(NavEvent.GOTO, "Go To", p, model, this));
+	    menu.add(new NXTHGMenuAction(NavEvent.SET_POSE, "Place robot", p, model, this));
+	    menu.add(new NXTHGMenuAction(NavEvent.ADD_WAYPOINT, "Add Waypoint", p, model, this));
+	    menu.add(new NXTHGMenuAction(NavEvent.SET_TARGET, "Set target", p, model, this));
 	}
   
 	public int run() {
