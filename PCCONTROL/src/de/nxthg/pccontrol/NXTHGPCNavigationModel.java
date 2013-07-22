@@ -33,12 +33,12 @@ import lejos.robotics.pathfinding.RandomPathFinder;
 import lejos.robotics.pathfinding.ShortestPathFinder;
 
 /**
- * The PCNavigationModel holds all the navigation data that is transmitted as events,
+ * The NXTHGPCNavigationModel holds all the navigation data that is transmitted as events,
  * to and from a NXT brick.
  * 
  * It has methods to generate events, and a Receiver thread to receive events from the NXT.
  * 
- * There is a NavigationPanel associated with the model. Whenever data in the model is updated,
+ * There is a NXTHGNavigationPanel associated with the model. Whenever data in the model is updated,
  * the NavigationPanel is repainted with the new data.
  * 
  * @author Lawrie Griffiths
@@ -469,7 +469,7 @@ public class NXTHGPCNavigationModel extends NXTHGNavigationModel {
 	/**
 	 * Test if a NXT brick is currently connected
 	 * 
-	 * @return true iff a NXT brick is connected
+	 * @return true if a NXT brick is connected
 	 */
 	public boolean isConnected() {
 		return connected;
