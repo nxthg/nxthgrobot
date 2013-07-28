@@ -3,6 +3,8 @@
 #################
 
 *.pydevproject
+.project
+.classpath
 .metadata
 bin/
 tmp/
