@@ -31,6 +31,34 @@ public class AufAbladen {
 	  ////////////////////////////////
 	  // AUF UND ABLADEN            //
 	  ////////////////////////////////
+
+
+	    
+	  public static void aufladen (){
+	 if (Button.LEFT.isDown()) {
+				greifen=-greifenMittel;	
+			    justieren(greifen);				///Schritt 2 
+
+			    drauf(ziehdrehungen);   		//Schritt 3
+			    //Signal zum Hoch/runterziehen an Lift
+				}
+			
+	 if (Button.RIGHT.isDown()) {
+					greifen=-greifenGross;
+				    justieren(greifen);			///Schritt 2
+				    drauf(ziehdrehungen); 		// Schritt 3
+				  //Signal zum Hoch/runterziehen an Lift 
+	 }
+				    
+				    if (Button.ENTER.isDown()) {  	 // Sobald Signal von Lift kommt, erneut einziehen
+						drauf(ziehdrehungen);		//Schritt 5.2
+						auseinander(greifen);		//Schritt 6.2
+				    }
+	  }
+	  
+	  
+	  
+	  
 	  
 	  public static void abladen(){
 		//warten auf signal von Lift
@@ -38,37 +66,18 @@ public class AufAbladen {
 				greifen=-greifenMittel;	
 			    justieren(greifen);
 			    drauf(-ziehdrehungen); 
-			    //Signal zum Hochtiehen an Lift
+			    //Signal zum Hoch/runterziehen an Lift
 				}
 			
 		  if (Button.RIGHT.isDown()) {
 					greifen=-greifenGross;
 				    justieren(greifen);
 				    drauf(-ziehdrehungen); 
-				  //Signal zum Hochtiehen an Lift 
+				  //Signal zum Hoch/runterziehen an Lift 
 		  }
 	  }
 	  
-	  public static void aufladen (){
-		  if (Button.LEFT.isDown()) {
-				greifen=-greifenMittel;	
-			    justieren(greifen);
-			    drauf(ziehdrehungen); 
-			    //Signal zum Hochtiehen an Lift
-				}
-			
-		  if (Button.RIGHT.isDown()) {
-					greifen=-greifenGross;
-				    justieren(greifen);
-				    drauf(ziehdrehungen); 
-				  //Signal zum Hochtiehen an Lift 
-		  }
-				    
-				    if (Button.ENTER.isDown()) {   // Sobald Signal von Lift kommt, erneut einziehen
-						drauf(ziehdrehungen);
-						auseinander(greifen);
-				    }
-	  }
+
 	 
 	  /////////////////////////////////
 	  
