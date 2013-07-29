@@ -153,6 +153,37 @@ public class NXTHGEventPanel extends JPanel implements ActionListener {
 								Float.parseFloat(param2.getText())));
 					}
 					break;
+				
+			    case OUR_PATH:
+				 	if (param1.getText()=="1") {
+				    	IssPathes.PATH1;	
+					} else {
+						if (param1.getText()=="2") {
+					    	IssPathes.PATH2;	
+						} else {
+							if (param1.getText()=="3") {
+						    	IssPathes.PATH3;	
+							} else {
+								if (param1.getText()=="4") {
+							    	IssPathes.PATH4;	
+								} else {
+									if (param1.getText()=="5") {
+								    	IssPathes.PATH5;	
+									} else {
+
+									} 
+								}  
+							}   
+						}   
+					}   
+			    	
+					
+			      
+			 
+			 
+			       break;						
+			 		
+			
 				case STOP:
 					model.stop();
 					break;
