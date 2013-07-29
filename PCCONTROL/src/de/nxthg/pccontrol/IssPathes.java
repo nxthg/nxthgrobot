@@ -25,6 +25,6 @@ public class IssPathes {
     static final Waypoint[] PATH5 = {new Waypoint(200.0, 160.0), new Waypoint(77.0, 230.0)};
     
  // vom nodeII zum ersten abladen
-    static final Waypoint[] PATH4 = {new Waypoint(70.0, 280.0), new Waypoint(70.0, 280.0)};
+    static final Waypoint[] PATH6 = {new Waypoint(70.0, 280.0), new Waypoint(70.0, 280.0)};
     
 }
