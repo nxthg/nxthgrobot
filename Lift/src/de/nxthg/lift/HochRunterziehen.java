@@ -1,27 +1,28 @@
 package de.nxthg.lift;
 
 import lejos.nxt.Button;
+import lejos.nxt.LCD;
 import lejos.nxt.Motor;
 import lejos.nxt.NXTRegulatedMotor;
-
+import lejos.util.Delay;
 public class HochRunterziehen {
 
-static int hoehecargo= 2*360;          	//umdrehungen um auf cargo area höhe zu kommen??
-static int cargodrehen = 3*360;			//umdrehungen damint alle kisten nach hinten gezogen werden
+static int hoehecargo=500;          	//umdrehungen um auf cargo area höhe zu kommen??
+static int cargodrehen =200;			//umdrehungen damint alle kisten nach hinten gezogen werden
 static int hoehekiste;
-static int hoehekisteUnten = 2*360;
-static int hoehekisteMitte = 2*360;
-static int hoehekisteOben = 2*360;
-static int hoehefahren = 3*360;
-static int y = 0; 						////////////////////////////////
-static int veränderunghoch=2 ; 				// Anzahl der cm pro umdrehung//
-static NXTRegulatedMotor MTurmLinks = Motor.A ;/////////////////////////////////     
+static int hoehekisteUnten =0;
+static int hoehekisteMitte = 800;
+static int hoehekisteOben = 3000;
+static int hoehefahren = 3*360;					
+static NXTRegulatedMotor MTurmLinks = Motor.A ;   
 static NXTRegulatedMotor MTurmRechts = Motor.B ;        
 static NXTRegulatedMotor MCargoArea = Motor.C ; 	
 	
 	
 	public static void main(){
 	while(true){
+		LCD.drawInt(MTurmLinks.getTachoCount(), 0, 0);
+		LCD.drawInt(MTurmRechts.getTachoCount(), 0, 3);
 		aufladen();
 		abladen();	
 		
@@ -30,19 +31,19 @@ static NXTRegulatedMotor MCargoArea = Motor.C ;
 }// end of main
 	
 	public static void aufladen () {
-		// sobald signal von Fahrer zum beginnen kommt ausführen:
 		
 		// Auf Signal warten dass im sagt in welcher höhe die kiste steht 
 		if(Button.RIGHT.isDown()){
 			hoehekiste= hoehekisteMitte;
 		}
 		
-		if (Button.LEFT.isDown()){				//Schritt 1
-			MTurmLinks.rotate(hoehekiste,true);
-			MTurmRechts.rotate(hoehekiste);
-			y=y+(hoehekiste*veränderunghoch); 
+		if (Button.LEFT.isDown()){				//Schritt 2
+			MTurmLinks.rotateTo(hoehekiste,true);
+			MTurmRechts.rotateTo(hoehekiste);
+			//Signal senden dass er auf Kistenhöhe ist
+			
 		}
-		
+		//warten dass signal zum hoch/runterziehen auf cargoarea kommt
 		if (Button.ENTER.isDown()){
 		hochziehen(hoehecargo, true);			//Schritt 4
 		// signal zu greifer senden, gleichzeitig:
@@ -53,28 +54,41 @@ static NXTRegulatedMotor MCargoArea = Motor.C ;
 		
 			}
 		}
-		
+	//sobald signal kommt, dass abgescholssen:	
+	hochziehen(hoehefahren,true);  //Schritt 6.2
+	
 	}// end of aufladen
 	
 	public static void abladen (){
-		// sobald signal von greifer zu hoch/runterziehen kommt ausführen:	
+		// sobald signal von greifer zum ausladen kommt ausführen:	
 				if (Button.ESCAPE.isDown()){
+					hochziehen(hoehecargo,true);
+					
+					
 					cargorein(-cargodrehen);	
 					
-					// signal zu greifer senden, gleichzeitig:
-					//hochziehen(-hoehecargo, false); wird nicht gebraucht da pakete rausfallen sollen
+					// signal zu greifer senden, dass er paket auf hebebühne aufnehmen soll...	
+					
+					//Auf signal von greifer warten dass er fertig ist
+					hochziehen(0,true);					
+					//Signal zu greifer dass er paket ausladen soll... 
 				
 				}			
 	}
 	
 public static void hochziehen(int h, boolean t){
-MTurmRechts.rotate(h, true);
-MTurmLinks.rotate(h);
-y=y+(h*veränderunghoch); 
+MTurmRechts.rotateTo(h, true);
+MTurmLinks.rotateTo(h,true); 
+while ( MTurmRechts.isMoving()) {
+	Delay.msDelay(10);
+	}
 }
 
 public static void cargorein(int r){
-	MCargoArea.rotate(r);
+	MCargoArea.rotate(r,true);
+	while ( MCargoArea.isMoving()) {
+		Delay.msDelay(10);
+		}
 }
 
 
