@@ -24,7 +24,7 @@ public class NXTHGEventPanel extends JPanel implements ActionListener {
 	protected JTextField param2 = new JTextField(8);
 	protected JTextField param3 = new JTextField(8);
 	protected NXTHGPCNavigationModel model;
-	protected NavEvent[] events = {NavEvent.ADD_WAYPOINT, NavEvent.ARC, NavEvent.CALCULATE_PATH, 
+	protected NavEvent[] events = {NavEvent.ADD_PATH, NavEvent.ADD_WAYPOINT, NavEvent.ARC, NavEvent.CALCULATE_PATH, 
 			  NavEvent.CLEAR_PATH, NavEvent.EXIT, NavEvent.FOLLOW_PATH, NavEvent.GET_BATTERY, NavEvent.GET_ESTIMATED_POSE, NavEvent.GET_PARTICLES, NavEvent.GET_POSE, 
 			  NavEvent.GET_READINGS, NavEvent.GOTO, NavEvent.LOCALIZE, NavEvent.RANDOM_MOVE, NavEvent.ROTATE, NavEvent.ROTATE_SPEED, NavEvent.ROTATE_TO, NavEvent.SET_POSE, NavEvent.SET_TARGET,
 			  NavEvent.SOUND, NavEvent.START_NAVIGATOR, NavEvent.STOP, NavEvent.TAKE_READINGS, NavEvent.TRAVEL, NavEvent.TRAVEL_SPEED};
@@ -117,6 +117,11 @@ public class NXTHGEventPanel extends JPanel implements ActionListener {
 				label1.setVisible(true);
 				param1.setVisible(true);
 				break;
+				
+			case ADD_PATH:
+				label1.setText("Pfad Nr:");
+				label1.setVisible(true);
+				param1.setVisible(true);				
 			}
 			eventCombo.revalidate();
 		} else if (e.getSource() == sendButton) {
@@ -153,36 +158,13 @@ public class NXTHGEventPanel extends JPanel implements ActionListener {
 								Float.parseFloat(param2.getText())));
 					}
 					break;
-				
-			    case OUR_PATH:
-				 	if (param1.getText()=="1") {
-				    	IssPathes.PATH1;	
-					} else {
-						if (param1.getText()=="2") {
-					    	IssPathes.PATH2;	
-						} else {
-							if (param1.getText()=="3") {
-						    	IssPathes.PATH3;	
-							} else {
-								if (param1.getText()=="4") {
-							    	IssPathes.PATH4;	
-								} else {
-									if (param1.getText()=="5") {
-								    	IssPathes.PATH5;	
-									} else {
-
-									} 
-								}  
-							}   
-						}   
-					}   
-			    	
-					
-			      
-			 
-			 
-			       break;						
-			 		
+			
+			    case ADD_PATH:
+			
+						for (Waypoint myWaypoint : IssPathes.PATH[Integer.parseInt(param1.getText())-1]) {
+							model.addWaypoint(myWaypoint);	
+						}			    							 
+			       break;										 		
 			
 				case STOP:
 					model.stop();
