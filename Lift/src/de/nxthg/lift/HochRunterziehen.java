@@ -1,10 +1,19 @@
 package de.nxthg.lift;
 
-import lejos.nxt.Button;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+
+import de.nxthg.greifer.AufAbladenV2;
+import de.nxthg.greifer.GreiferEvents;
 import lejos.nxt.LCD;
-import lejos.nxt.Motor;
 import lejos.nxt.NXTRegulatedMotor;
+import lejos.nxt.Motor;
+import lejos.nxt.comm.Bluetooth;
+import lejos.nxt.comm.NXTCommConnector;
+import lejos.nxt.comm.NXTConnection;
 import lejos.util.Delay;
+
 public class HochRunterziehen {
 
 static int hoehecargo=500;          	//umdrehungen um auf cargo area höhe zu kommen??
@@ -17,20 +26,68 @@ static int hoehefahren = 3*360;
 static NXTRegulatedMotor MTurmLinks = Motor.A ;   
 static NXTRegulatedMotor MTurmRechts = Motor.B ;        
 static NXTRegulatedMotor MCargoArea = Motor.C ; 	
-	
-	
-	public static void main(){
-	while(true){
+private static DataInputStream dis;
+private static DataOutputStream dos;	
+static boolean running;
+
+
+public static void main(String[] args) {       
+	while (true) {
 		LCD.drawInt(MTurmLinks.getTachoCount(), 0, 0);
-		LCD.drawInt(MTurmRechts.getTachoCount(), 0, 3);
-		aufladen();
-		abladen();	
-		
-		
+		run();
 	}
 }// end of main
+
+
+
+
+public static void run() {
+	NXTCommConnector connector = Bluetooth.getConnector();
+	NXTConnection conn = connector.connect("Greifer",NXTConnection.PACKET);
+	dis = conn.openDataInputStream();
+	dos = conn.openDataOutputStream();
+	running=true;
+	while(running) {
+		try {
+			byte event = dis.readByte();
+			GreiferEvents gevent = GreiferEvents.values()[event];
+			synchronized(HochRunterziehen.class) {
+				switch (gevent) {	
 	
-	public static void aufladen () {
+				case AUF_KISTENHOEHE_FAHREN_UNTEN:
+					hochziehen(hoehekisteUnten,true);
+					dos.write(GreiferEvents.AUF_KISTENHOEHE_EINZIEHEN.ordinal());
+					break;
+					
+				case AUF_KISTENHOEHE_FAHREN_MITTE:
+					hochziehen(hoehekisteMitte,true);
+					dos.write(GreiferEvents.AUF_KISTENHOEHE_EINZIEHEN.ordinal());
+					break;
+					
+				case AUF_KISTENHOEHE_FAHREN_OBEN:
+					hochziehen(hoehekisteOben,true);
+					dos.write(GreiferEvents.AUF_KISTENHOEHE_EINZIEHEN.ordinal());
+					break;
+					
+				case AUF_CARGOAREA_FAHREN:
+					hochziehen(hoehecargo,true);
+					dos.write(GreiferEvents.AUF_CARGOAREA_EINZIEHEN.ordinal());
+					cargorein(cargodrehen);
+					break;
+					
+					
+				}
+			}
+		} catch (IOException ioe) {
+			fatal("IOException in receiver:");
+		}
+	}
+}
+					
+
+
+
+/* public static void aufladen () {
 		
 		// Auf Signal warten dass im sagt in welcher höhe die kiste steht 
 		if(Button.RIGHT.isDown()){
@@ -38,8 +95,7 @@ static NXTRegulatedMotor MCargoArea = Motor.C ;
 		}
 		
 		if (Button.LEFT.isDown()){				//Schritt 2
-			MTurmLinks.rotateTo(hoehekiste,true);
-			MTurmRechts.rotateTo(hoehekiste);
+			
 			//Signal senden dass er auf Kistenhöhe ist
 			
 		}
@@ -58,10 +114,10 @@ static NXTRegulatedMotor MCargoArea = Motor.C ;
 	hochziehen(hoehefahren,true);  //Schritt 6.2
 	
 	}// end of aufladen
-	
+	*/
 	public static void abladen (){
 		// sobald signal von greifer zum ausladen kommt ausführen:	
-				if (Button.ESCAPE.isDown()){
+		
 					hochziehen(hoehecargo,true);
 					
 					
@@ -73,7 +129,7 @@ static NXTRegulatedMotor MCargoArea = Motor.C ;
 					hochziehen(0,true);					
 					//Signal zu greifer dass er paket ausladen soll... 
 				
-				}			
+							
 	}
 	
 public static void hochziehen(int h, boolean t){
@@ -91,5 +147,10 @@ public static void cargorein(int r){
 		}
 }
 
+public static void fatal(String message) {
+	System.out.println(message);
+	Delay.msDelay(5000);
+	System.exit(1);
+}	        
 
 }// End of class Hochtiehen
