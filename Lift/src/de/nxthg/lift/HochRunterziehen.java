@@ -4,8 +4,8 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
-import de.nxthg.greifer.AufAbladenV2;
 import de.nxthg.greifer.GreiferEvents;
+import lejos.nxt.Button;
 import lejos.nxt.LCD;
 import lejos.nxt.NXTRegulatedMotor;
 import lejos.nxt.Motor;
@@ -29,21 +29,40 @@ static NXTRegulatedMotor MCargoArea = Motor.C ;
 private static DataInputStream dis;
 private static DataOutputStream dos;	
 static boolean running;
+private static HochRunterziehen model;
 
 
 public static void main(String[] args) {       
-	while (true) {
+
 		LCD.drawInt(MTurmLinks.getTachoCount(), 0, 0);
-		run();
-	}
+		model = new HochRunterziehen();
+		model.run();
+		
+		Button.waitForAnyPress();
+    	model.shutDown();
+    	// Das kann weg, wenn die Schleife im runnable tut.
+    	try {
+			Thread.sleep(4000);
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+		
 }// end of main
 
+private void shutDown() {
+	// TODO Auto-generated method stub
+		running = false;	
+}
 
 
-
-public static void run() {
+@SuppressWarnings("incomplete-switch")
+public void run() {
 	NXTCommConnector connector = Bluetooth.getConnector();
+	System.out.println("Suche Greifer");
 	NXTConnection conn = connector.connect("Greifer",NXTConnection.PACKET);
+	System.out.println("gefunden");
 	dis = conn.openDataInputStream();
 	dos = conn.openDataOutputStream();
 	running=true;
@@ -81,6 +100,7 @@ public static void run() {
 		} catch (IOException ioe) {
 			fatal("IOException in receiver:");
 		}
+		System.out.println("stopped");
 	}
 }
 					
@@ -115,7 +135,7 @@ public static void run() {
 	
 	}// end of aufladen
 	*/
-	public static void abladen (){
+	public void abladen (){
 		// sobald signal von greifer zum ausladen kommt ausführen:	
 		
 					hochziehen(hoehecargo,true);
@@ -132,7 +152,7 @@ public static void run() {
 							
 	}
 	
-public static void hochziehen(int h, boolean t){
+public void hochziehen(int h, boolean t){
 MTurmRechts.rotateTo(h, true);
 MTurmLinks.rotateTo(h,true); 
 while ( MTurmRechts.isMoving()) {
@@ -140,14 +160,14 @@ while ( MTurmRechts.isMoving()) {
 	}
 }
 
-public static void cargorein(int r){
+public void cargorein(int r){
 	MCargoArea.rotate(r,true);
 	while ( MCargoArea.isMoving()) {
 		Delay.msDelay(10);
 		}
 }
 
-public static void fatal(String message) {
+public void fatal(String message) {
 	System.out.println(message);
 	Delay.msDelay(5000);
 	System.exit(1);

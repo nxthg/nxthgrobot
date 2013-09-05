@@ -28,16 +28,18 @@ public class AufAbladen {
 	private static DataInputStream dis;
 	private static DataOutputStream dos;
 	private static boolean running;
+	
+	
 	  public static void main(String[] args) {       
 	   while (true) {
 		   LCD.drawInt(MJustieren.getTachoCount(), 0, 0);
-		   run();
+		  // run();
 		}
 		
 	  
 	  
 	  } // end of main
-public static void run() {
+/*public static void run() {
 	NXTCommConnector connector = Bluetooth.getConnector();
 	NXTConnection conn = connector.waitForConnection(0, NXTConnection.PACKET);
 	dis = conn.openDataInputStream();
@@ -69,7 +71,7 @@ public static void run() {
 			fatal("IOException in receiver:");
 		
 		}
-}
+}*/
 	  ////////////////////////////////
 	  // AUF UND ABLADEN            //
 	  ////////////////////////////////
