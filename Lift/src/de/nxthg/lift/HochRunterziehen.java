@@ -43,9 +43,13 @@ public class HochRunterziehen {
 
 		LCD.drawInt(MTurmLinks.getTachoCount(), 0, 0);
 		model = new HochRunterziehen();
+		System.out.println("Warte auf Button");
 
 		Button.waitForAnyPress();
+		System.out.println("Button wurde gepresst");
 		model.shutDown();
+		System.out.println("Nach Shutdown");
+		
 		// Das kann weg, wenn die Schleife im runnable tut.
 		try {
 			Thread.sleep(4000);
@@ -59,6 +63,7 @@ public class HochRunterziehen {
 	private void shutDown() {
 		// TODO Auto-generated method stub
 		running = false;
+		System.exit(0);
 	}
 
 	/*
@@ -130,10 +135,12 @@ public class HochRunterziehen {
 			dos = conn.openDataOutputStream();
 			running = true;
 			while (running) {
+				System.out.println("While Schleife lauft");
 				try {
 					byte event = dis.readByte();
+					System.out.println("lese Byte");
 					GreiferEvents gevent = GreiferEvents.values()[event];
-					synchronized (HochRunterziehen.class) {
+					synchronized (this) {
 						switch (gevent) {
 
 						case AUF_KISTENHOEHE_FAHREN_UNTEN:

@@ -73,7 +73,7 @@ public class AufAbladenV2  {
 			try {
 				byte event = disFahrer.readByte();
 				GreiferEvents gevent = GreiferEvents.values()[event];
-				synchronized(AufAbladenV2.class) {
+				synchronized(this) {
 					switch (gevent) {
 					case KISTE_KLEIN_UNTEN: 									//vom Fahrer 
 						justieren(greifenKlein);	  		 				
@@ -130,7 +130,7 @@ public class AufAbladenV2  {
 				try {
 					byte event = disLift.readByte();
 					GreiferEvents gevent = GreiferEvents.values()[event];
-					synchronized(AufAbladenV2.class) {
+					synchronized(this) {
 						switch (gevent) {
 						
 						case AUF_KISTENHOEHE_EINZIEHEN:
