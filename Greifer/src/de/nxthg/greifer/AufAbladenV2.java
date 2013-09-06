@@ -37,7 +37,7 @@ public class AufAbladenV2  {
 	public AufAbladenV2(){
 		//receiverFahrer = new Thread(new ReceiverFahrer());
 		//receiverFahrer.start();
-		receiverLift = new Thread(new ReceiverLift());
+		receiverLift = new Thread(new ConnectorLift());
 		receiverLift.start();	
 	}
 
@@ -116,11 +116,11 @@ public class AufAbladenV2  {
 	}
 
 
-	class ReceiverLift implements Runnable {
+	class ConnectorLift implements Runnable {
 		public void run() {
 			NXTCommConnector connector = Bluetooth.getConnector();
-			System.out.println("Wartet auf Verbindung");
-			NXTConnection conn = connector.waitForConnection(0, NXTConnection.PACKET);
+			System.out.println("Suche Lift");
+			NXTConnection conn = connector.connect("Lift",NXTConnection.PACKET);
 			System.out.println("Verbindung hergestellt");
 			System.out.flush();
 			disLift = conn.openDataInputStream();
