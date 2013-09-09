@@ -24,12 +24,16 @@ public class AufAbladenV2  {
 	static int greifenGross = 400;						//Wie viel um ein großes Paket zu greifen auseinander????
 	static int greifen;
 	static int außen=500;
+	static int kisteBreite ;
+	static int kisteTiefe;
+	static int kisteTiefeMittel=30;
+	static int kisteTiefeGross=50;
 	private static DataInputStream disFahrer;
 	private static DataOutputStream dosFahrer;
 	private static DataInputStream disLift;
 	private static DataOutputStream dosLift;
 	private boolean running;
-	private Thread receiverFahrer;
+	//private Thread receiverFahrer;
 	private Thread receiverLift;
 	private static AufAbladenV2 model;
 	
@@ -76,24 +80,40 @@ public class AufAbladenV2  {
 				synchronized(this) {
 					switch (gevent) {
 					case KISTE_KLEIN_UNTEN: 									//vom Fahrer 
-						justieren(greifenKlein);	  		 				
+						justieren(greifenKlein+5);
+						kisteBreite= greifenKlein;
+						kisteTiefe=kisteTiefeMittel; 
 						dosLift.write(GreiferEvents.AUF_KISTENHOEHE_FAHREN_UNTEN.ordinal()); //Zu Lift
 						
 						break;
 					case KISTE_MITTEL_UNTEN:
-						justieren(greifenMittel);							// Signal zu lift dass er auf die kistenhöhe soll
+						justieren(greifenMittel+5);	
+						kisteBreite= greifenMittel;
+						kisteTiefe=kisteTiefeMittel; 
 						dosLift.write(GreiferEvents.AUF_KISTENHOEHE_FAHREN_UNTEN.ordinal());					
 						break;
 						
 					case KISTE_MITTEL_MITTE:
-						justieren(greifenMittel);							// Signal zu lift dass er auf die kistenhöhe soll
+						justieren(greifenMittel+5);	
+						kisteBreite= greifenMittel;
+						kisteTiefe=kisteTiefeMittel; 
 						dosLift.write(GreiferEvents.AUF_KISTENHOEHE_FAHREN_MITTE.ordinal());					
 						break;
 						
 					case KISTE_GROSS_OBEN:
-						justieren(greifenGross);									// Signal zu lift dass er auf die kistenhöhe soll
+						justieren(greifenGross+5);	
+						kisteBreite= greifenGross;
+						kisteTiefe=kisteTiefeGross; 
 						dosLift.write(GreiferEvents.AUF_KISTENHOEHE_FAHREN_OBEN.ordinal());
 						break;
+						
+					case FAHRER_VORNE:
+						justieren(kisteBreite);
+						reinArme(kisteTiefe,true);
+						dosFahrer.write(GreiferEvents.FAHR_ZURUECK.ordinal());
+						
+					case FAHRER_HINTEN:
+						dosLift.write(GreiferEvents.AUF_CARGOAREA_FAHREN.ordinal());
 
 					case STOP:
 						dosLift.write(GreiferEvents.STOP.ordinal());
@@ -133,16 +153,16 @@ public class AufAbladenV2  {
 					synchronized(this) {
 						switch (gevent) {
 						
-						case AUF_KISTENHOEHE_EINZIEHEN:
-							drauf(ziehdrehungen); 	
-							dosLift.write(GreiferEvents.AUF_CARGOAREA_FAHREN.ordinal());	//Warten auf signal von lift dass er auf kistenhöhe ist				
+						case AUF_KISTENHOEHE: 	
+							dosFahrer.write(GreiferEvents.FAHR_VOR.ordinal());
+							//dosLift.write(GreiferEvents.AUF_CARGOAREA_FAHREN.ordinal());	//Warten auf signal von lift dass er auf kistenhöhe ist				
 							break;									  		//Signal zum Hoch/runterziehen an Lift auf cargoarea
 
 
-						case AUF_CARGOAREA_EINZIEHEN:					  	//Sobald signal komm dass hebebühne auf cargoarea-höhe ist:
-							drauf(ziehdrehungen);
-							justieren(außen);
-							dosFahrer.write(GreiferEvents.KISTE_IST_DRAUF.ordinal());
+						case AUF_CARGOAREA:					  	//Sobald signal komm dass hebebühne auf cargoarea-höhe ist:
+							reinArme(kisteTiefe,true);
+							dosLift.write(GreiferEvents.CARGOAREA_REIN.ordinal());
+							//justieren(außen);
 							break;
 
 							case STARTEN_ABLADEN:

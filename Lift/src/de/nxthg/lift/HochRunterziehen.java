@@ -86,7 +86,9 @@ public class HochRunterziehen {
 	 * 
 	 * }// end of aufladen
 	 */
-	public void abladen() {
+	
+	
+	/*public void abladen() {
 		// sobald signal von greifer zum ausladen kommt ausführen:
 
 		hochziehen(hoehecargo, true);
@@ -100,7 +102,8 @@ public class HochRunterziehen {
 		hochziehen(0, true);
 		// Signal zu greifer dass er paket ausladen soll...
 
-	}
+	} 
+	*/
 
 	public void hochziehen(int h, boolean t) {
 		MTurmRechts.rotateTo(h, true);
@@ -145,28 +148,32 @@ public class HochRunterziehen {
 
 						case AUF_KISTENHOEHE_FAHREN_UNTEN:
 							hochziehen(hoehekisteUnten, true);
-							dos.write(GreiferEvents.AUF_KISTENHOEHE_EINZIEHEN
+							dos.write(GreiferEvents.AUF_KISTENHOEHE
 									.ordinal());
 							break;
 
 						case AUF_KISTENHOEHE_FAHREN_MITTE:
 							hochziehen(hoehekisteMitte, true);
-							dos.write(GreiferEvents.AUF_KISTENHOEHE_EINZIEHEN
+							dos.write(GreiferEvents.AUF_KISTENHOEHE
 									.ordinal());
 							break;
 
 						case AUF_KISTENHOEHE_FAHREN_OBEN:
 							hochziehen(hoehekisteOben, true);
-							dos.write(GreiferEvents.AUF_KISTENHOEHE_EINZIEHEN
+							dos.write(GreiferEvents.AUF_KISTENHOEHE
 									.ordinal());
 							break;
 
 						case AUF_CARGOAREA_FAHREN:
 							hochziehen(hoehecargo, true);
-							dos.write(GreiferEvents.AUF_CARGOAREA_EINZIEHEN
+							dos.write(GreiferEvents.AUF_CARGOAREA
 									.ordinal());
-							cargorein(cargodrehen);
 							break;
+							
+						case CARGOAREA_REIN:
+							cargorein(cargodrehen);
+							//dos.write(GreiferEvents.KISTE_IST_DRAUF.ordinal());
+							hochziehen(hoehefahren,true);
 
 						}
 					}
@@ -178,4 +185,4 @@ public class HochRunterziehen {
 		}
 	}
 
-}// End of class Hochtiehen
+}// End of class Hochziehen
