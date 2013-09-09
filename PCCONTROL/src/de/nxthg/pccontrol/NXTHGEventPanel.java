@@ -24,7 +24,7 @@ public class NXTHGEventPanel extends JPanel implements ActionListener {
 	protected JTextField param2 = new JTextField(8);
 	protected JTextField param3 = new JTextField(8);
 	protected NXTHGPCNavigationModel model;
-	protected NavEvent[] events = {NavEvent.ADD_PATH, NavEvent.ADD_WAYPOINT, NavEvent.ARC, NavEvent.CALCULATE_PATH, 
+	protected NavEvent[] events = {NavEvent.ADD_PATH, NavEvent.ADD_WAYPOINT, NavEvent.ARC, NavEvent.AUFLADEN_PAKET, NavEvent.CALCULATE_PATH, 
 			  NavEvent.CLEAR_PATH, NavEvent.EXIT, NavEvent.FOLLOW_PATH, NavEvent.GET_BATTERY, NavEvent.GET_ESTIMATED_POSE, NavEvent.GET_PARTICLES, NavEvent.GET_POSE, 
 			  NavEvent.GET_READINGS, NavEvent.GOTO, NavEvent.LOCALIZE, NavEvent.RANDOM_MOVE, NavEvent.ROTATE, NavEvent.ROTATE_SPEED, NavEvent.ROTATE_TO, NavEvent.SET_POSE, NavEvent.SET_TARGET,
 			  NavEvent.SOUND, NavEvent.START_NAVIGATOR, NavEvent.STOP, NavEvent.TAKE_READINGS, NavEvent.TRAVEL, NavEvent.TRAVEL_SPEED};
@@ -121,7 +121,16 @@ public class NXTHGEventPanel extends JPanel implements ActionListener {
 			case ADD_PATH:
 				label1.setText("Pfad Nr:");
 				label1.setVisible(true);
-				param1.setVisible(true);				
+				param1.setVisible(true);
+			    break;
+			    
+			case AUFLADEN_PAKET:
+				label1.setText("Größe:");
+				label1.setVisible(true);
+				param1.setVisible(true);
+				label2.setText("Höhe:");
+				label2.setVisible(true);
+				param2.setVisible(true);
 			}
 			eventCombo.revalidate();
 		} else if (e.getSource() == sendButton) {
@@ -163,9 +172,21 @@ public class NXTHGEventPanel extends JPanel implements ActionListener {
 			
 						for (Waypoint myWaypoint : IssPathes.PATH[Integer.parseInt(param1.getText())-1]) {
 							model.addWaypoint(myWaypoint);	
-						}			    							 
-			       break;										 		
-			
+						}
+			        break;
+		
+			    //case SET_START:
+			    //	model.setPose(new Pose(150, 50, 90));		    	
+			    //	break;		
+			        
+			    case AUFLADEN_PAKET:		    	
+			    	model.paket(Integer.parseInt(param1.getText()), Integer.parseInt(param2.getText()));			        
+			    	 //AUFLADEN_PAKET_GROSS_OBEN
+			    	 //AUFLADEN_PAKET_MITTEL_MITTE
+			    	 //AUFLADEN_PAKET_MITTEL_UNTEN
+			         //AUFLADEN_PAKET_KLEIN_UNTEN
+			        break;
+			       
 				case STOP:
 					model.stop();
 					break;

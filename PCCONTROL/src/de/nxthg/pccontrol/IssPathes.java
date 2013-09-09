@@ -14,7 +14,7 @@ public class IssPathes {
 	static final Waypoint[] PATH2 = {new Waypoint(150.4, 157.0), new Waypoint(175.4, 157.0)};
     
     // von der driten kiste ueber die rampe
-	static final Waypoint[] PATH3 = {new Waypoint(150.4, 380.0)};
+	static final Waypoint[] PATH3 = {new Waypoint(150.4, 202.7), new Waypoint(150.4, 380.0)};
 	
     // durch nodeII, falls wir nicht eingreifen
 	static final Waypoint[] PATH4 = {new Waypoint(191.7, 490.0), new Waypoint(255.6, 490.0)};

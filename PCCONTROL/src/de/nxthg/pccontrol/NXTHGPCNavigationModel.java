@@ -172,6 +172,7 @@ public class NXTHGPCNavigationModel extends NXTHGNavigationModel {
 	/**
 	 * Close the LCP connection to the NXT
 	 */
+	@SuppressWarnings("deprecation")
 	public void lcpClose() {
 		try {
 			nxtCommand.close();
@@ -602,6 +603,25 @@ public class NXTHGPCNavigationModel extends NXTHGNavigationModel {
 			panel.error("IO Exception in arc");
 		}
 	}
+	
+	
+	//   FOLGENDES IST VON UNS (Richard und Hannes)
+	
+	public void paket(int groesse, int hoehe) {
+		if (!connected) return;
+		try {
+				dos.writeByte(NavEvent.AUFLADEN_PAKET.ordinal());
+				dos.writeInt(groesse);
+				dos.writeInt(hoehe);
+				dos.flush();	
+		} catch (IOException ioe) {
+			panel.error("IO Exception in paket");
+		}
+	}
+	
+	
+	
+	
 	
 	/**
 	 * Send a ROTATE_TO event to the NXT

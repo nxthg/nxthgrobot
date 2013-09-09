@@ -38,7 +38,7 @@ public abstract class NXTHGNavigationModel {
 	protected DataInputStream dis;
 	protected DataOutputStream dos;
 	protected int numReadings = 0;
-	protected Pose currentPose = new Pose(0,0,0);
+	protected Pose currentPose = new Pose(150,50,90);
 	protected Waypoint target = null;
 	protected MCLParticleSet particles;
 	protected MCLPoseProvider mcl;
@@ -61,7 +61,7 @@ public abstract class NXTHGNavigationModel {
 		ESTIMATED_POSE, PATH_COMPLETE, FEATURE_DETECTED, FIND_PATH, PATH, SET_TARGET, FOLLOW_PATH, ROTATE_TO,
 		PATH_GENERATED, PATH_INTERRUPTED, CLEAR_PATH, ARC, START_NAVIGATOR, LOCALIZE, LOCATED, EXIT, CALCULATE_PATH,
 		SOUND, GET_BATTERY, BATTERY, PILOT_PARAMS, RANGE_FEATURE_DETECTOR_PARAMS, RANGE_SCANNER_PARAMS,
-		TRAVEL_SPEED, ROTATE_SPEED, RANDOM_MOVE_PARAMS, ADD_PATH}
+		TRAVEL_SPEED, ROTATE_SPEED, RANDOM_MOVE_PARAMS, ADD_PATH, AUFLADEN_PAKET}
 	
 	/**
 	 * Test is the model has a map registered
