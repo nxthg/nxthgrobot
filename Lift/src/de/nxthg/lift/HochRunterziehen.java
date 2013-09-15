@@ -50,14 +50,7 @@ public class HochRunterziehen {
 		model.shutDown();
 		System.out.println("Nach Shutdown");
 		
-		// Das kann weg, wenn die Schleife im runnable tut.
-		try {
-			Thread.sleep(4000);
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-
+		
 	}// end of main
 
 	private void shutDown() {
@@ -174,6 +167,13 @@ public class HochRunterziehen {
 							cargorein(cargodrehen);
 							//dos.write(GreiferEvents.KISTE_IST_DRAUF.ordinal());
 							hochziehen(hoehefahren,true);
+							
+						case ABLADEN:
+							hochziehen(10,false);
+							cargorein(-2*cargodrehen);
+							break;
+							
+							
 
 						}
 					}

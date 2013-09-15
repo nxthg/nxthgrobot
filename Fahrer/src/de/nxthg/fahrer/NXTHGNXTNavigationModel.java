@@ -217,6 +217,7 @@ public class NXTHGNXTNavigationModel extends NXTHGNavigationModel implements Mov
 	 *
 	 */
 	class Receiver implements Runnable {
+		@SuppressWarnings("incomplete-switch")
 		public void run() {
 			NXTCommConnector connector = Bluetooth.getConnector();
 			NXTConnection conn = connector.waitForConnection(0, NXTConnection.PACKET);
@@ -415,7 +416,7 @@ public class NXTHGNXTNavigationModel extends NXTHGNavigationModel implements Mov
 							clearance = dis.readFloat();
 							break;
 							
-						case AUFLADEN_PAKET: // Request to travel an arc og given radius and angle
+						case AUFLADEN_PAKET:
 							int groesse = dis.readInt();
 							int regal = dis.readInt();						
 							if (groesse==1){
@@ -444,6 +445,10 @@ public class NXTHGNXTNavigationModel extends NXTHGNavigationModel implements Mov
 							
 							break;
 							
+						case ABLADEN_PAKET:
+							dosGreifer.write(GreiferEvents.ABLADEN.ordinal());
+							break;
+							
 						
 						}
 					}
@@ -456,6 +461,7 @@ public class NXTHGNXTNavigationModel extends NXTHGNavigationModel implements Mov
 		
 		
 		class ConnectorGreifer implements Runnable {
+			@SuppressWarnings("incomplete-switch")
 			public void run() {
 				NXTCommConnector connector = Bluetooth.getConnector();
 				System.out.println("Suche Greifer");

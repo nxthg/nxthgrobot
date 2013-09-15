@@ -18,7 +18,8 @@ public class AufAbladenV2  {
 	static int ziehdrehungen = 2*360;                     // wie viele umdrehung um ein packet auf die kleine zwischenladefläche zu ziehen?????
 	static NXTRegulatedMotor MJustieren = Motor.C ;     // Antrieb der Ketten auf der Ladefläche
 	static NXTRegulatedMotor MArmLinks = Motor.A ;        // Antrieb für die Kette am linken Arm; forward ist rein/raus????
-	static NXTRegulatedMotor MArmRechts = Motor.B ;       // Antrieb für die Kette am rechten Arm; forward ist rein/raus????
+	static NXTRegulatedMotor MArmRechts = Motor.B ; 
+	static int aussen=200;
 	static int greifenKlein = 200;					//Wie viel um ein kleines Paket zu greifen auseinander????
 	static int greifenMittel = 300;						//Wie viel um ein mittleres Paket zu greifen auseinander ????
 	static int greifenGross = 400;						//Wie viel um ein großes Paket zu greifen auseinander????
@@ -33,16 +34,26 @@ public class AufAbladenV2  {
 	private static DataInputStream disLift;
 	private static DataOutputStream dosLift;
 	private boolean running;
-	//private Thread receiverFahrer;
+	private Thread receiverFahrer;
 	private Thread receiverLift;
 	private static AufAbladenV2 model;
+	static boolean unverbunden = true;
 	
 	
 	public AufAbladenV2(){
-		//receiverFahrer = new Thread(new ReceiverFahrer());
-		//receiverFahrer.start();
+		
 		receiverLift = new Thread(new ConnectorLift());
 		receiverLift.start();	
+		System.out.println("Verbinde zu Lift");
+		while(unverbunden){
+			Delay.msDelay(100);
+		}
+		System.out.println("Mit Lift Verbunden" +
+				"Warte auf Verbindung con Fahrer");
+		receiverFahrer = new Thread(new ReceiverFahrer());
+		receiverFahrer.start();
+		
+		
 	}
 
 	public static void main(String[] args) { 
@@ -119,6 +130,12 @@ public class AufAbladenV2  {
 						dosLift.write(GreiferEvents.STOP.ordinal());
 						System.exit(0);
 						break;
+						
+					case ABLADEN:
+						justieren(aussen);
+						dosLift.write(GreiferEvents.ABLADEN.ordinal());
+						break;
+						
 
 					default:
 						LCD.drawString("Unbekannter Befehl",1, 1);
@@ -142,6 +159,7 @@ public class AufAbladenV2  {
 			System.out.println("Suche Lift");
 			NXTConnection conn = connector.connect("Lift",NXTConnection.PACKET);
 			System.out.println("Verbindung hergestellt");
+			unverbunden=false;
 			System.out.flush();
 			disLift = conn.openDataInputStream();
 			dosLift = conn.openDataOutputStream();
@@ -155,7 +173,7 @@ public class AufAbladenV2  {
 						
 						case AUF_KISTENHOEHE: 	
 							dosFahrer.write(GreiferEvents.FAHR_VOR.ordinal());
-							//dosLift.write(GreiferEvents.AUF_CARGOAREA_FAHREN.ordinal());	//Warten auf signal von lift dass er auf kistenhöhe ist				
+							//dosLift.write(GreiferEvents.AUF_CARGOAREA_FAHREN.ordinal());			
 							break;									  		//Signal zum Hoch/runterziehen an Lift auf cargoarea
 
 
@@ -175,7 +193,7 @@ public class AufAbladenV2  {
 
 							case AUF_BODEN_AUSWERFEN:
 						 drauf(-ziehdrehungen);
-						 break;											//Signal: Fertig
+						 break;											
 					
 
 						default:

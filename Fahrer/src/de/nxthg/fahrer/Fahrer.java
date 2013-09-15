@@ -6,8 +6,6 @@ import lejos.nxt.Button;
 import lejos.nxt.SensorPort;
 import lejos.nxt.UltrasonicSensor;
 import lejos.robotics.RegulatedMotor;
-import lejos.robotics.mapping.NXTNavigationModel;
-import lejos.robotics.mapping.NavEventListener;
 import de.nxthg.fahrer.NXTHGNavigationModel.NavEvent;
 import lejos.robotics.navigation.DifferentialPilot;
 import lejos.robotics.navigation.Move.MoveType;
@@ -38,7 +36,7 @@ public class Fahrer implements NXTHGNavEventListener {
 		(new Fahrer()).run();
 	}
 	
-	public void run() throws Exception {
+public void run() throws Exception {
     	model = new NXTHGNXTNavigationModel();
     	model.addListener(this);
     	model.setDebug(true);
@@ -63,15 +61,15 @@ public class Fahrer implements NXTHGNavEventListener {
     	
     	final DifferentialPilot robot = new DifferentialPilot(wheelDiameter,trackWidth,leftMotor,rightMotor,reverse);
     	final Navigator navigator = new Navigator(robot);
-    	UltrasonicSensor sonic = new UltrasonicSensor(SensorPort.S1);
-    	RangeFeatureDetector detector = new RangeFeatureDetector(sonic, MAX_DISTANCE, DETECTOR_DELAY);
+    	// UltrasonicSensor sonic = new UltrasonicSensor(SensorPort.S1);
+    	// RangeFeatureDetector detector = new RangeFeatureDetector(sonic, MAX_DISTANCE, DETECTOR_DELAY);
 		
     	// Adding the navigator, adds the pilot and pose provider as well
     	model.addNavigator(navigator);
     	
     	// Add the feature detector and start it. 
     	// Give it a pose provider, so that it records the pose when a feature was detected
-    	model.addFeatureDetector(detector);
+    	/*model.addFeatureDetector(detector);
     	detector.enableDetection(true);
     	detector.setPoseProvider(navigator.getPoseProvider());
     	
@@ -83,8 +81,8 @@ public class Fahrer implements NXTHGNavEventListener {
 					if (navigator.isMoving()) navigator.stop();
 				}					
 			}		
-    	});
-	}
+    	});*/
+	} 
 
 	public void eventReceived(NavEvent navEvent) {
 		// Nothing
