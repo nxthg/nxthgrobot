@@ -35,7 +35,7 @@ import lejos.util.PilotProps;
  * updates the model and sends the event and the updates to the PC.
  * 
  * A receiver thread receives events from the PC, updates the local model, and uses the navigation
- * objects to implement the event if it involves robot behaviour.
+ * objects to implement the event if it involves robot behaviour. Bla
  * 
  * There are set methods to set various navigation parameters.
  * 
