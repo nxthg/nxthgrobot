@@ -3,17 +3,10 @@ package de.nxthg.fahrer;
 import java.io.IOException;
 
 import lejos.nxt.Button;
-import lejos.nxt.SensorPort;
-import lejos.nxt.UltrasonicSensor;
 import lejos.robotics.RegulatedMotor;
 import de.nxthg.fahrer.NXTHGNavigationModel.NavEvent;
 import lejos.robotics.navigation.DifferentialPilot;
-import lejos.robotics.navigation.Move.MoveType;
 import lejos.robotics.navigation.Navigator;
-import lejos.robotics.objectdetection.Feature;
-import lejos.robotics.objectdetection.FeatureDetector;
-import lejos.robotics.objectdetection.FeatureListener;
-import lejos.robotics.objectdetection.RangeFeatureDetector;
 import lejos.util.PilotProps;
 
 /**
@@ -27,8 +20,8 @@ import lejos.util.PilotProps;
  * @author Lawrie Griffiths
  */
 public class Fahrer implements NXTHGNavEventListener {
-	public static final float MAX_DISTANCE = 50f;
-	public static final int DETECTOR_DELAY = 1000;
+	//public static final float MAX_DISTANCE = 50f;
+	//public static final int DETECTOR_DELAY = 1000;
 	
 	private NXTHGNXTNavigationModel model;
 	

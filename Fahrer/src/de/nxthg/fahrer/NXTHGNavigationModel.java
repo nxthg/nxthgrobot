@@ -4,13 +4,12 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 
 import lejos.robotics.RangeReadings;
-import lejos.robotics.localization.MCLParticleSet;
-import lejos.robotics.localization.MCLPoseProvider;
+//import lejos.robotics.localization.MCLParticleSet;
+//import lejos.robotics.localization.MCLPoseProvider;
 import lejos.robotics.mapping.LineMap;
 import lejos.robotics.navigation.Move;
 import lejos.robotics.navigation.Pose;
 import lejos.robotics.navigation.Waypoint;
-import lejos.robotics.objectdetection.RangeFeature;
 import lejos.robotics.pathfinding.Path;
 
 /**
@@ -40,13 +39,13 @@ public abstract class NXTHGNavigationModel {
 	protected int numReadings = 0;
 	protected Pose currentPose = new Pose(0,0,0);
 	protected Waypoint target = null;
-	protected MCLParticleSet particles;
-	protected MCLPoseProvider mcl;
+	//protected MCLParticleSet particles;
+	//protected MCLPoseProvider mcl;
 	protected RangeReadings readings = new RangeReadings(1);
 	protected Path path;
 	protected Move lastMove = new Move(0,0,false);
 	protected Move lastPlannedMove = new Move(0,0,false);
-	protected RangeFeature feature = new RangeFeature(readings);
+	// protected RangeFeature feature = new RangeFeature(readings);
 	protected boolean debug = false;
 	
 	/**
@@ -59,8 +58,7 @@ public abstract class NXTHGNavigationModel {
 		SET_POSE, RANDOM_MOVE, TAKE_READINGS, GET_READINGS, FIND_CLOSEST, ADD_WAYPOINT, GET_PARTICLES, PARTICLE_SET,
 		RANGE_READINGS, MOVE_STARTED, MOVE_STOPPED, WAYPOINT_REACHED, CLOSEST_PARTICLE, GET_ESTIMATED_POSE,
 		ESTIMATED_POSE, PATH_COMPLETE, FEATURE_DETECTED, FIND_PATH, PATH, SET_TARGET, FOLLOW_PATH, ROTATE_TO,
-		PATH_GENERATED, PATH_INTERRUPTED, CLEAR_PATH, ARC, START_NAVIGATOR, LOCALIZE, LOCATED, EXIT, CALCULATE_PATH,
-		SOUND, GET_BATTERY, BATTERY, PILOT_PARAMS, RANGE_FEATURE_DETECTOR_PARAMS, RANGE_SCANNER_PARAMS,
+		PATH_GENERATED, PATH_INTERRUPTED, CLEAR_PATH, ARC, START_NAVIGATOR, LOCALIZE, LOCATED, EXIT,  PILOT_PARAMS, RANGE_FEATURE_DETECTOR_PARAMS, RANGE_SCANNER_PARAMS,
 		TRAVEL_SPEED, ROTATE_SPEED, RANDOM_MOVE_PARAMS, AUFLADEN_KISTE_KLEIN_UNTEN, AUFLADEN_KISTE_MITTEL_UNTEN, AUFLADEN_KISTE_MITELL_MITTE,
 		AUFLADEN_KISTE_GROSS_OBEN, AUFLADEN_PAKET, ABLADEN_PAKET}
 	
@@ -105,9 +103,9 @@ public abstract class NXTHGNavigationModel {
 	 * 
 	 * @return the MCLParticleSet or null
 	 */
-	public MCLParticleSet getParticles() {
+	/*public MCLParticleSet getParticles() {
 		return particles;
-	}
+	}*/
 	
 	/**
 	 * Set the current robot pose
@@ -123,9 +121,9 @@ public abstract class NXTHGNavigationModel {
 	 * 
 	 * @param particles an MCLParticleSet
 	 */
-	public void setParticleSet(MCLParticleSet particles) {
+	/*public void setParticleSet(MCLParticleSet particles) {
 		this.particles = particles;
-	}
+	}*/
 	
 	/**
 	 * Get the current range readings
