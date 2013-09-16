@@ -14,7 +14,7 @@ import lejos.nxt.comm.NXTCommConnector;
 import lejos.nxt.comm.NXTConnection;
 import lejos.util.Delay;
 
-public class HochRunterziehen {
+public class Lift {
 
 	static int hoehecargo = 500; // umdrehungen um auf cargo area höhe zu
 									// kommen??
@@ -31,10 +31,10 @@ public class HochRunterziehen {
 	private DataInputStream dis;
 	private DataOutputStream dos;
 	static boolean running;
-	private static HochRunterziehen model;
+	private static Lift model;
 	private Thread connectorLift;
 
-	public HochRunterziehen() {
+	public Lift() {
 		connectorLift = new Thread(new ConnectorLift());
 		connectorLift.start();
 	}
@@ -42,7 +42,7 @@ public class HochRunterziehen {
 	public static void main(String[] args) {
 
 		LCD.drawInt(MTurmLinks.getTachoCount(), 0, 0);
-		model = new HochRunterziehen();
+		model = new Lift();
 		System.out.println("Warte auf Button");
 
 		Button.waitForAnyPress();

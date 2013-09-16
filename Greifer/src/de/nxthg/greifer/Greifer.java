@@ -16,7 +16,7 @@ import lejos.nxt.comm.USB;
 import lejos.util.Delay;
 import lejos.util.TextMenu;
 
-public class AufAbladenV2 {
+public class Greifer {
 	static int ziehdrehungen = 2 * 360; // wie viele umdrehung um ein packet auf
 										// die kleine zwischenladefläche zu
 										// ziehen?????
@@ -46,10 +46,10 @@ public class AufAbladenV2 {
 	private boolean running;
 	private Thread receiverFahrer;
 	private Thread receiverLift;
-	private static AufAbladenV2 model;
+	private static Greifer model;
 	static boolean unverbunden = true;
 
-	public AufAbladenV2() {
+	public Greifer() {
 
 		receiverLift = new Thread(new ConnectorLift());
 		receiverLift.start();
@@ -66,7 +66,7 @@ public class AufAbladenV2 {
 
 	public static void main(String[] args) {
 		LCD.drawInt(MJustieren.getTachoCount(), 0, 0);
-		model = new AufAbladenV2();
+		model = new Greifer();
 
 		Button.waitForAnyPress();
 		model.shutDown();
