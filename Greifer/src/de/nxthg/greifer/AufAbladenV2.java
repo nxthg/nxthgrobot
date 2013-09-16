@@ -49,7 +49,7 @@ public class AufAbladenV2  {
 			Delay.msDelay(100);
 		}
 		System.out.println("Mit Lift Verbunden" +
-				"Warte auf Verbindung con Fahrer");
+				"Warte auf Verbindung zum Fahrer");
 		receiverFahrer = new Thread(new ReceiverFahrer());
 		receiverFahrer.start();
 		
