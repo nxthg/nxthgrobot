@@ -24,10 +24,10 @@ public class NXTHGEventPanel extends JPanel implements ActionListener {
 	protected JTextField param2 = new JTextField(8);
 	protected JTextField param3 = new JTextField(8);
 	protected NXTHGPCNavigationModel model;
-	protected NavEvent[] events = {NavEvent.ABLADEN_PAKET, NavEvent.ADD_PATH, NavEvent.ADD_WAYPOINT, NavEvent.ARC, NavEvent.AUFLADEN_PAKET, NavEvent.CALCULATE_PATH, 
-			  NavEvent.CLEAR_PATH, NavEvent.EXIT, NavEvent.FOLLOW_PATH, NavEvent.GET_BATTERY, NavEvent.GET_ESTIMATED_POSE, NavEvent.GET_PARTICLES, NavEvent.GET_POSE, 
+	protected NavEvent[] events = {NavEvent.ABLADEN_PAKET, NavEvent.ADD_PATH, NavEvent.ADD_WAYPOINT, NavEvent.ARC, NavEvent.AUFLADEN_PAKET,
+			  NavEvent.CLEAR_PATH, NavEvent.EXIT, NavEvent.FOLLOW_PATH,NavEvent.GET_ESTIMATED_POSE, NavEvent.GET_PARTICLES, NavEvent.GET_POSE, 
 			  NavEvent.GET_READINGS, NavEvent.GOTO, NavEvent.LOCALIZE, NavEvent.RANDOM_MOVE, NavEvent.ROTATE, NavEvent.ROTATE_SPEED, NavEvent.ROTATE_TO, NavEvent.SET_POSE, NavEvent.SET_TARGET,
-			  NavEvent.SOUND, NavEvent.START_NAVIGATOR, NavEvent.STOP, NavEvent.TAKE_READINGS, NavEvent.TRAVEL, NavEvent.TRAVEL_SPEED};
+			  NavEvent.START_NAVIGATOR, NavEvent.STOP, NavEvent.TAKE_READINGS, NavEvent.TRAVEL, NavEvent.TRAVEL_SPEED};
 	protected JComboBox eventCombo = new JComboBox(events);
 	protected NXTHGNavigationPanel panel;
 	
@@ -106,11 +106,11 @@ public class NXTHGEventPanel extends JPanel implements ActionListener {
 				label3.setVisible(true);
 				param3.setVisible(true);
 				break;
-			case SOUND:
+			/*case SOUND:
 				label1.setText("Code:");
 				label1.setVisible(true);
 				param1.setVisible(true);
-				break;
+				break;*/
 			case TRAVEL_SPEED:
 			case ROTATE_SPEED:
 				label1.setText("Speed:");
@@ -223,19 +223,19 @@ public class NXTHGEventPanel extends JPanel implements ActionListener {
 					}
 					panel.repaint();
 					break;
-				case CALCULATE_PATH:
+				/*case CALCULATE_PATH:
 					model.calculatePath();
 					panel.repaint();
-					break;
+					break;*/
 				case FOLLOW_PATH:
 					model.followPath();
 					break;
-				case SOUND:
+				/*case SOUND:
 					model.sendSound(Integer.parseInt(param1.getText()));
-					break;
-				case GET_BATTERY:
+					break;*/
+				/*case GET_BATTERY:
 					model.getRemoteBattery();
-					break;
+					break;*/
 				case TRAVEL_SPEED:
 					model.setTravelSpeed(Float.parseFloat(param1.getText()));
 					break;

@@ -844,7 +844,7 @@ public class NXTHGPCNavigationModel extends NXTHGNavigationModel {
 	/**
 	 * Send a system sound
 	 */
-	public void sendSound(int code) {
+	/*public void sendSound(int code) {
 		if (!connected) return;
 		try {
 			synchronized(receiver) {
@@ -855,14 +855,14 @@ public class NXTHGPCNavigationModel extends NXTHGNavigationModel {
 	    } catch (IOException ioe) {
 			panel.error("IO Exception in sendSound");
 		}
-	}
+	}*/
 	
 	/**
 	 * Get the remote battery voltage
 	 */
-	public void getRemoteBattery() {
+	/*public void getRemoteBattery() {
 		sendEvent(NavEvent.GET_BATTERY);
-	}
+	}*/
 	
 	private void sendEvent(NavEvent navEvent) {
 		if (!connected) return;
@@ -974,9 +974,9 @@ public class NXTHGPCNavigationModel extends NXTHGNavigationModel {
 						case PATH: // Get a path generated on the NXT
 							path.loadObject(dis);
 							break;
-						case BATTERY:
+						/*case BATTERY:
 							voltage = dis.readFloat();
-							break;
+							break;*/
 						}
 						// Signal that an event has been received
 						panel.eventReceived(navEvent);
