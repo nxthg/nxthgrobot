@@ -619,8 +619,26 @@ public class NXTHGPCNavigationModel extends NXTHGNavigationModel {
 		}
 	}
 	
+	public void paketab() {
+		if (!connected) return;
+		try {
+				dos.writeByte(NavEvent.ABLADEN_PAKET.ordinal());			
+				dos.flush();	
+		} catch (IOException ioe) {
+			panel.error("IO Exception in paketab");
+		}
+	}
 	
-	
+	public void drehen(int winkel) {
+		if (!connected) return;
+		try {
+				dos.writeByte(NavEvent.DREHEN.ordinal());
+				dos.writeInt(winkel);
+				dos.flush();	
+		} catch (IOException ioe) {
+			panel.error("IO Exception in drehen");
+		}
+	}
 	
 	
 	/**
