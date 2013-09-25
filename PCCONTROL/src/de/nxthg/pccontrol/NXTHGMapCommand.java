@@ -29,21 +29,22 @@ public class NXTHGMapCommand extends NXTHGNavigationPanel {
 	private static final long serialVersionUID = 1L;
 
 	private static final int FRAME_WIDTH = 1010;
-	private static final int FRAME_HEIGHT = 1050;
+	private static final int FRAME_HEIGHT = 1055;
 	private static final int INITIAL_ZOOM = 160;
 	private static final Point INITIAL_MAP_ORIGIN = new Point(-10, -10);
 	private static final Dimension MAP_AREA_SIZE = new Dimension(800, 550);
 	private static final String FRAME_TITLE = "NXJ Map Command";
 
 	private NXTHGSliderPanel setHeading, rotate, travelSpeed, rotateSpeed;
-	private NXTHGSliderPanel_Drehen Drehen;
+	//private NXTHGSliderPanel_Drehen Drehen;
 	private NXTHGSliderPanel_Seitwärts seitwärts;
 	private JPanel leftPanel = new JPanel();
 	private JPanel rightPanel = new JPanel();
 	private JButton stopNavigatorButton = new JButton();
 	private JButton startNavigatorButton = new JButton();
 	private JButton abladenButton = new JButton();
-	
+	private JButton einziehButton = new JButton();
+	private JButton stopEinziehButton = new JButton();
 
 	/**
 	 * Create a MapTest object and display it in a GUI frame. Then connect to
@@ -92,21 +93,21 @@ public class NXTHGMapCommand extends NXTHGNavigationPanel {
 		leftPanel.add(loadPanel);
 		connectPanel.setPreferredSize(new Dimension(300, 90));
 		leftPanel.add(connectPanel);
-		setHeading = new NXTHGSliderPanel(model, NavEvent.SET_POSE,
-				"Set Heading:", "Set", 360);
+		setHeading = new NXTHGSliderPanel(model, NavEvent.SET_POSE,	"Set Heading:", "Set", 360);
 		setHeading.setPreferredSize(new Dimension(280, 80));
 		commandPanel.add(setHeading);
 		
-		/*rotate = new NXTHGSliderPanel(model, NavEvent.ROTATE_TO, "Rotate To:",
-				"Go", 360);
-		rotate.setPreferredSize(new Dimension(280, 80));
-		commandPanel.add(rotate);
-		*/
-		
-		travelSpeed = new NXTHGSliderPanel(model, NavEvent.TRAVEL_SPEED,"Travel Speed", "Set", Integer.parseInt(props.getProperty(KEY_MAX_TRAVEL_SPEED, "60")));
+	    rotate = new NXTHGSliderPanel(model, NavEvent.ROTATE_TO,
+	    "Rotate To:", "Go", 360); rotate.setPreferredSize(new Dimension(280, 80)); 
+	    commandPanel.add(rotate);		
+
+		travelSpeed = new NXTHGSliderPanel(model, NavEvent.TRAVEL_SPEED,
+		"Travel Speed", "Set", Integer.parseInt(props.getProperty(KEY_MAX_TRAVEL_SPEED, "60")));		
 		travelSpeed.setPreferredSize(new Dimension(280, 80));
 		commandPanel.add(travelSpeed);
-		rotateSpeed = new NXTHGSliderPanel(model, NavEvent.ROTATE_SPEED,"Rotate Speed", "Set", Integer.parseInt(props.getProperty(KEY_MAX_ROTATE_SPEED, "360")));
+		
+		rotateSpeed = new NXTHGSliderPanel(model, NavEvent.ROTATE_SPEED,
+		"Rotate Speed", "Set", Integer.parseInt(props.getProperty(KEY_MAX_ROTATE_SPEED, "360")));
 		rotateSpeed.setPreferredSize(new Dimension(280, 80));
 		commandPanel.add(rotateSpeed);
 
@@ -114,26 +115,36 @@ public class NXTHGMapCommand extends NXTHGNavigationPanel {
 		startNavigatorButton.addActionListener(this);
 		startNavigatorButton.setPreferredSize(new Dimension(300, 50));
 		leftPanel.add(startNavigatorButton);
-		
-		stopNavigatorButton = new JButton("STOP!");
+
+		stopNavigatorButton = new JButton("STOP Navigator!");
 		stopNavigatorButton.addActionListener(this);
 		stopNavigatorButton.setPreferredSize(new Dimension(300, 50));
-		leftPanel.add(stopNavigatorButton);		
-		
+		leftPanel.add(stopNavigatorButton);
+
 		abladenButton = new JButton("Abladen");
 		abladenButton.addActionListener(this);
 		abladenButton.setPreferredSize(new Dimension(300, 50));
 		leftPanel.add(abladenButton);
+
+		einziehButton = new JButton("Einziehen");
+		einziehButton.addActionListener(this);
+		einziehButton.setPreferredSize(new Dimension(300, 50));
+		leftPanel.add(einziehButton);
 		
-		Drehen = new NXTHGSliderPanel_Drehen(model, NavEvent.DREHEN, "Drehen", "Set", 30);
+		stopEinziehButton = new JButton("Stop Einziehen");
+		stopEinziehButton.addActionListener(this);
+		stopEinziehButton.setPreferredSize(new Dimension(300, 50));
+		leftPanel.add(stopEinziehButton);
+
+		/*Drehen = new NXTHGSliderPanel_Drehen(model, NavEvent.DREHEN, "Drehen", "Set", 30);
 		Drehen.setPreferredSize(new Dimension(280, 80));
-		commandPanel.add(Drehen);
-		
-		seitwärts = new NXTHGSliderPanel_Seitwärts(model, NavEvent.SEITWAERTS, "zur Seite:", "Set", 5);
+		commandPanel.add(Drehen);*/
+
+		seitwärts = new NXTHGSliderPanel_Seitwärts(model, NavEvent.SEITWAERTS, "zur Seite (cm):", "Set", 5);
 		seitwärts.setPreferredSize(new Dimension(280, 80));
 		commandPanel.add(seitwärts);
 
-		commandPanel.setPreferredSize(new Dimension(300, 550));
+		commandPanel.setPreferredSize(new Dimension(300, 460));
 		leftPanel.add(commandPanel);
 		rightPanel.add(mapPanel, BorderLayout.CENTER);
 		leftPanel.add(controlPanel);
@@ -143,7 +154,6 @@ public class NXTHGMapCommand extends NXTHGNavigationPanel {
 		add(rightPanel, BorderLayout.CENTER);
 		controlPanel.setPreferredSize(new Dimension(300, 80));
 		zoomSlider.setValue(INITIAL_ZOOM);
-
 	}
 
 	/**
@@ -203,7 +213,7 @@ public class NXTHGMapCommand extends NXTHGNavigationPanel {
 	}
 
 	public void actionPerformed(ActionEvent e) {
-		System.out.println("Event:"+ e.toString());
+		System.out.println("Event:" + e.toString());
 		super.actionPerformed(e);
 		if (e.getSource() == startNavigatorButton) {
 			model.startNavigator();
@@ -214,7 +224,13 @@ public class NXTHGMapCommand extends NXTHGNavigationPanel {
 		if (e.getSource() == abladenButton) {
 			model.paketab();
 		}
-		
+		if (e.getSource() == einziehButton) {
+			model.einziehen();
+		}
+		if (e.getSource() == stopEinziehButton) {
+			model.stopEinziehen();
+		}
+
 	}
 
 }

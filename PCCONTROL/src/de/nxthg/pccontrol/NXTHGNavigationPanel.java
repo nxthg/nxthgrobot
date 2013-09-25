@@ -1398,9 +1398,9 @@ public abstract class NXTHGNavigationPanel extends JPanel implements NXTHGMapApp
 			model.localize();
 		} else if (e.getSource() == stop) {
 			model.stop();
-		} else if (e.getSource() == calculatePath) {
+		/*} else if (e.getSource() == calculatePath) {
 			model.calculatePath();
-			repaint();
+			repaint();*/
 		} else if (e.getSource() == followPath) {
 			model.followPath();
 		} else if (e.getSource() == defaultColors) {

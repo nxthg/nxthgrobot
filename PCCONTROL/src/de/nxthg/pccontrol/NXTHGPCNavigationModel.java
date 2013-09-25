@@ -44,6 +44,7 @@ import lejos.robotics.pathfinding.ShortestPathFinder;
  * @author Lawrie Griffiths
  *
  */
+@SuppressWarnings("unused")
 public class NXTHGPCNavigationModel extends NXTHGNavigationModel {
 	protected NXTHGMapApplicationUI panel;
 	protected int closest = -1;
@@ -622,7 +623,8 @@ public class NXTHGPCNavigationModel extends NXTHGNavigationModel {
 	public void paketab() {
 		if (!connected) return;
 		try {
-				dos.writeByte(NavEvent.ABLADEN_PAKET.ordinal());			
+				dos.writeByte(NavEvent.ABLADEN_PAKET.ordinal());
+				System.out.println("Gesendet");
 				dos.flush();	
 		} catch (IOException ioe) {
 			panel.error("IO Exception in paketab");
@@ -640,6 +642,34 @@ public class NXTHGPCNavigationModel extends NXTHGNavigationModel {
 		}
 	}
 	
+	public void einziehen() {
+		if (!connected) return;
+		try {
+				dos.writeByte(NavEvent.EINZIEHEN.ordinal());			
+				dos.flush();	
+		} catch (IOException ioe) {
+			panel.error("IO Exception in einziehen");
+		}
+	}
+	
+	public void stopEinziehen() {
+		if (!connected) return;
+		try {
+				dos.writeByte(NavEvent.STOP_EINZIEHEN.ordinal());			
+				dos.flush();	
+		} catch (IOException ioe) {
+			panel.error("IO Exception in stopEinziehen");
+		}
+	}
+	public void seitwaerts(int value) {
+		if (!connected) return;
+		try {
+				dos.writeByte(NavEvent.SEITWAERTS.ordinal());			
+				dos.flush();	
+		} catch (IOException ioe) {
+			panel.error("IO Exception in seitwärts");
+		}		
+	}
 	
 	/**
 	 * Send a ROTATE_TO event to the NXT
@@ -828,7 +858,7 @@ public class NXTHGPCNavigationModel extends NXTHGNavigationModel {
 	/**
 	 * Calculate the path with the Node path finder
 	 */
-	public void calculatePath() {
+	/*public void calculatePath() {
 		if (currentPose == null || target == null) return;
 		if (pf == null) return;
 		try {
@@ -839,7 +869,7 @@ public class NXTHGPCNavigationModel extends NXTHGNavigationModel {
 			path = null;
 			panel.error("Destination unreachable");
 		}
-	}
+	}*/
 	
 	/**
 	 * Send a system sound
@@ -989,4 +1019,5 @@ public class NXTHGPCNavigationModel extends NXTHGNavigationModel {
 			}		
 		}	
 	}
+
 }
