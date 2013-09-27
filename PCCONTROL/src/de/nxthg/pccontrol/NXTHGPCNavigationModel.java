@@ -611,10 +611,11 @@ public class NXTHGPCNavigationModel extends NXTHGNavigationModel {
 	public void paket(int groesse, int hoehe) {
 		if (!connected) return;
 		try {
-				dos.writeByte(NavEvent.AUFLADEN_PAKET.ordinal());
+			    dos.writeByte(NavEvent.AUFLADEN_PAKET.ordinal());
 				dos.writeInt(groesse);
 				dos.writeInt(hoehe);
-				dos.flush();	
+				dos.flush();
+				System.out.println("Paket Gesendet");
 		} catch (IOException ioe) {
 			panel.error("IO Exception in paket");
 		}

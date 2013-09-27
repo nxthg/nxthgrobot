@@ -175,16 +175,12 @@ public class NXTHGEventPanel extends JPanel implements ActionListener {
 						}
 			        break;
 		
-			    //case SET_START:
+			    //  case SET_START:
 			    //	model.setPose(new Pose(150, 50, 90));		    	
 			    //	break;		
 			        
 			    case AUFLADEN_PAKET:		    	
-			    	model.paket(Integer.parseInt(param1.getText()), Integer.parseInt(param2.getText()));			        
-			    	 //AUFLADEN_PAKET_GROSS_OBEN
-			    	 //AUFLADEN_PAKET_MITTEL_MITTE
-			    	 //AUFLADEN_PAKET_MITTEL_UNTEN
-			         //AUFLADEN_PAKET_KLEIN_UNTEN
+			    	model.paket(Integer.parseInt(param1.getText()), Integer.parseInt(param2.getText()));
 			        break;
 			    
 			    //case ABLADEN_PAKET:    
