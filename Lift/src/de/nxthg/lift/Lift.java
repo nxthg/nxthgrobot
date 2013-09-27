@@ -100,10 +100,10 @@ public class Lift {
 
 	public void hochziehen(int h, boolean t) {
 		MTurmRechts.rotateTo(h, true);
-		MTurmLinks.rotateTo(h, true);
-		while (MTurmRechts.isMoving()) {
-			Delay.msDelay(10);
-		}
+		MTurmLinks.rotateTo(h, t);
+//		while (MTurmRechts.isMoving()) {
+//			Delay.msDelay(10);
+//		}
 	}
 
 	public void cargorein(int r) {
@@ -135,42 +135,48 @@ public class Lift {
 				try {
 					byte event = dis.readByte();
 					System.out.println("lese Byte");
+					System.out.println(event); 
+					System.out.flush();
 					GreiferEvents gevent = GreiferEvents.values()[event];
 					synchronized (this) {
 						switch (gevent) {
-
+						case STOP:
+							System.out.print("Befehl empfangen");
+							break;
 						case AUF_KISTENHOEHE_FAHREN_UNTEN:
 							hochziehen(hoehekisteUnten, true);
-							dos.write(GreiferEvents.AUF_KISTENHOEHE
+							dos.writeByte(GreiferEvents.AUF_KISTENHOEHE
 									.ordinal());
 							break;
 
 						case AUF_KISTENHOEHE_FAHREN_MITTE:
 							hochziehen(hoehekisteMitte, true);
-							dos.write(GreiferEvents.AUF_KISTENHOEHE
+							dos.writeByte(GreiferEvents.AUF_KISTENHOEHE
 									.ordinal());
 							break;
 
 						case AUF_KISTENHOEHE_FAHREN_OBEN:
 							hochziehen(hoehekisteOben, true);
-							dos.write(GreiferEvents.AUF_KISTENHOEHE
+							dos.writeByte(GreiferEvents.AUF_KISTENHOEHE
 									.ordinal());
 							break;
 
 						case AUF_CARGOAREA_FAHREN:
 							hochziehen(hoehecargo, true);
-							dos.write(GreiferEvents.AUF_CARGOAREA
+							dos.writeByte(GreiferEvents.AUF_CARGOAREA
 									.ordinal());
 							break;
 							
 						case CARGOAREA_REIN:
 							cargorein(cargodrehen);
-							//dos.write(GreiferEvents.KISTE_IST_DRAUF.ordinal());
+							//dos.writeByte(GreiferEvents.KISTE_IST_DRAUF.ordinal());
 							hochziehen(hoehefahren,true);
 							
 						case ABLADEN:
-							hochziehen(10,false);
-							cargorein(-2*cargodrehen);
+							System.out.println("Befehl ABLADEN bekommen");
+							System.out.flush();
+							hochziehen(5000,true);
+							cargorein(-20*cargodrehen);
 							break;
 							
 							

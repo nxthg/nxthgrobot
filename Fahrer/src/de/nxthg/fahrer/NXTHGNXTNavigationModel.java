@@ -6,7 +6,6 @@ import java.io.IOException;
 import de.nxthg.greifer.GreiferEvents;
 
 import lejos.nxt.Motor;
-import lejos.nxt.Sound;
 import lejos.nxt.comm.*;
 import lejos.robotics.RangeScanner;
 import lejos.robotics.RegulatedMotor;
@@ -17,6 +16,8 @@ import lejos.robotics.navigation.*;
 import lejos.robotics.pathfinding.Path;
 import lejos.util.Delay;
 import lejos.util.PilotProps;
+import lejos.robotics.navigation.DifferentialPilot;
+import lejos.robotics.navigation.Navigator;
 
 /**
  * NXT version of the navigation model.
@@ -56,8 +57,9 @@ public class NXTHGNXTNavigationModel extends NXTHGNavigationModel implements
 	private Thread receiver;
 	private boolean running = true;
 	private Thread connectorGreifer;
-	private static DataInputStream disGreifer;
-	private static DataOutputStream dosGreifer;
+	public DataInputStream disGreifer;
+	public DataOutputStream dosGreifer;
+	private DifferentialPilot robot;
 
 	/**
 	 * Create the model and start the receiver thread
@@ -65,8 +67,17 @@ public class NXTHGNXTNavigationModel extends NXTHGNavigationModel implements
 	public NXTHGNXTNavigationModel() {
 		receiver = new Thread(new Receiver());
 		receiver.start();
+		System.out.println("Erzeuge NXTHGNXTNavigationModel");
+		System.out.flush();
+		Delay.msDelay(4000);
 		connectorGreifer = new Thread(new ConnectorGreifer());
+		System.out.println("neuer Thread gemacht");
+		System.out.flush();
+		Delay.msDelay(4000);
 		connectorGreifer.start();
+		System.out.println("Greifer gestartet");
+		System.out.flush();
+		Delay.msDelay(4000);
 	}
 
 	/**
@@ -316,7 +327,7 @@ public class NXTHGNXTNavigationModel extends NXTHGNavigationModel implements
 							dos.writeByte(NavEvent.SET_POSE.ordinal());
 							currentPose.dumpObject(dos);
 							break;
-						case SET_POSE: // Request to set the current pose of the
+						case SET_POSE: // Request to set the current pose of the                                TUT DAS? ? ? ES MUSS FUNKTIONIEREN ! ! !
 										// robot
 							if (currentPose == null)
 								currentPose = new Pose(0, 0, 0);
@@ -484,40 +495,65 @@ public class NXTHGNXTNavigationModel extends NXTHGNavigationModel implements
 							int regal = dis.readInt();
 							if (groesse == 1) {
 								if (regal == 1) {
-									dosGreifer
-											.write(GreiferEvents.KISTE_KLEIN_UNTEN
+									dosGreifer.writeByte(GreiferEvents.KISTE_KLEIN_UNTEN
 													.ordinal());
+									dos.flush();
+									System.out.print("An Greifer weitergesendet");
 								}
 							}
 
 							if (groesse == 2) {
 								if (regal == 1) {
-									dosGreifer
-											.write(GreiferEvents.KISTE_MITTEL_UNTEN
+									dosGreifer.writeByte(GreiferEvents.KISTE_MITTEL_UNTEN
 													.ordinal());
+									dos.flush();
+									System.out.print("An Greifer weitergesendet");
 								}
 							}
 
 							if (groesse == 2) {
 								if (regal == 2) {
-									dosGreifer
-											.write(GreiferEvents.KISTE_MITTEL_MITTE
-													.ordinal());
+
 								}
 							}
 
 							if (groesse == 3) {
 								if (regal == 3) {
-									dosGreifer
-											.write(GreiferEvents.KISTE_GROSS_OBEN
+									dosGreifer.writeByte(GreiferEvents.KISTE_GROSS_OBEN
 													.ordinal());
+									dos.flush();
+									System.out.print("An Greifer weitergesendet");
 								}
 							}
 
 							break;
 
+							
+						case EINZIEHEN:
+							dosGreifer.writeByte(GreiferEvents.EINZIEHEN.ordinal());
+							break;
+							
+						case STOP_EINZIEHEN:
+							dosGreifer.writeByte(GreiferEvents.STOP_EINZIEHEN.ordinal());
+							break;
+							
 						case ABLADEN_PAKET:
-							dosGreifer.write(GreiferEvents.ABLADEN.ordinal());
+							System.out.println("  Befehl ABLADEN_PAKET bekommen ");
+							Delay.msDelay(4000);
+							dosGreifer.writeByte(GreiferEvents.ABLADEN.ordinal());
+							dosGreifer.flush();
+							Delay.msDelay(4000);
+							System.out.println(" Befehl ABLADEN_PAKET an greifer gesendet");
+							break;
+							
+							
+						case SEITWAERTS:
+							
+							break;
+							
+						case DREHEN:
+							int winkel = dis.readInt();
+							robot.rotate(winkel, true);
 							break;
 
 						}
@@ -533,6 +569,7 @@ public class NXTHGNXTNavigationModel extends NXTHGNavigationModel implements
 		@SuppressWarnings("incomplete-switch")
 		public void run() {
 			String name = "Greifer";
+			System.out.println("Vor RS485");
 			NXTConnection con = RS485.getConnector().connect(name,
 					NXTConnection.PACKET);
 			System.out.println("Connected ");
@@ -540,22 +577,29 @@ public class NXTHGNXTNavigationModel extends NXTHGNavigationModel implements
 			disGreifer = con.openDataInputStream();
 			dosGreifer = con.openDataOutputStream();
 			running = true;
-			while (running) {
+			while (running){
 				try {
 					byte event = disGreifer.readByte();
 					GreiferEvents gevent = GreiferEvents.values()[event];
 					synchronized (this) {
 						switch (gevent) {
-
+						case FAHR_ZURUECK_5CM:
+							navigator.getMoveController().travel(-5);
+							dosGreifer.writeByte(GreiferEvents.FAHRER_HINTEN_5CM
+									.ordinal());						
+							break;
+						case FAHR_VOR_5CM:
+							navigator.getMoveController().travel(10);
+							dosGreifer.writeByte(GreiferEvents.FAHRER_VORNE_5CM.ordinal());
 						case FAHR_VOR:
-							navigator.getMoveController().travel(5);
-							dosGreifer.write(GreiferEvents.FAHRER_VORNE
+							navigator.getMoveController().travel(10);
+							dosGreifer.writeByte(GreiferEvents.FAHRER_VORNE
 									.ordinal());
 							break;
 
 						case FAHR_ZURUECK:
-							navigator.getMoveController().travel(-5);
-							dosGreifer.write(GreiferEvents.FAHRER_HINTEN
+							navigator.getMoveController().travel(-10);
+							dosGreifer.writeByte(GreiferEvents.FAHRER_HINTEN
 									.ordinal());
 							break;
 						}
