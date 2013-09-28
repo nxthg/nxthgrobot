@@ -13,6 +13,9 @@ import lejos.nxt.comm.Bluetooth;
 import lejos.nxt.comm.NXTCommConnector;
 import lejos.nxt.comm.NXTConnection;
 import lejos.util.Delay;
+import lejos.nxt.SensorPort;
+import lejos.nxt.TouchSensor;
+import lejos.robotics.Touch;
 
 public class Lift {
 
@@ -22,14 +25,14 @@ public class Lift {
 									// gezogen werden
 	static int hoehekiste;
 	static int hoehekisteUnten = 0;
-	static int hoehekisteMitte = 800;
-	static int hoehekisteOben = 3000;
+	static int hoehekisteMitte = 50;
+	static int hoehekisteOben = 5000;
 	static int hoehefahren = 3 * 360;
 	static NXTRegulatedMotor MTurmLinks = Motor.A;
 	static NXTRegulatedMotor MTurmRechts = Motor.B;
 	static NXTRegulatedMotor MCargoArea = Motor.C;
-	private DataInputStream dis;
-	private DataOutputStream dos;
+	private static DataInputStream disLift2Greifer;
+	private static DataOutputStream dosLift2Greifer;
 	static boolean running;
 	private static Lift model;
 	private Thread connectorLift;
@@ -40,17 +43,31 @@ public class Lift {
 	}
 
 	public static void main(String[] args) {
-
+		TouchSensor ts = new TouchSensor(SensorPort.S3);
 		LCD.drawInt(MTurmLinks.getTachoCount(), 0, 0);
 		model = new Lift();
 		System.out.println("Warte auf Button");
 
-		Button.waitForAnyPress();
-		System.out.println("Button wurde gepresst");
-		model.shutDown();
-		System.out.println("Nach Shutdown");
-		
-		
+		while (true){
+			if (ts.isPressed()){
+				try {
+					System.out.println("Button pressed");
+					dosLift2Greifer.writeByte(GreiferEvents.STOP.ordinal());
+					dosLift2Greifer.flush();
+					System.out.println("nach flush");
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				Delay.msDelay(10);
+				System.exit(0);}
+			else {
+				Delay.msDelay(20);
+			}
+		}
+
+
+
 	}// end of main
 
 	private void shutDown() {
@@ -98,12 +115,12 @@ public class Lift {
 	} 
 	*/
 
-	public void hochziehen(int h, boolean t) {
+	public void hochziehen(int h) {
 		MTurmRechts.rotateTo(h, true);
-		MTurmLinks.rotateTo(h, t);
-//		while (MTurmRechts.isMoving()) {
-//			Delay.msDelay(10);
-//		}
+		MTurmLinks.rotateTo(h,true);
+		while (MTurmRechts.isMoving()) {
+		Delay.msDelay(10);
+		}
 	}
 
 	public void cargorein(int r) {
@@ -127,13 +144,13 @@ public class Lift {
 			NXTConnection conn = connector.waitForConnection(0,
 					NXTConnection.PACKET);
 			System.out.println("gefunden");
-			dis = conn.openDataInputStream();
-			dos = conn.openDataOutputStream();
+			disLift2Greifer = conn.openDataInputStream();
+			dosLift2Greifer = conn.openDataOutputStream();
 			running = true;
 			while (running) {
-				System.out.println("While Schleife lauft");
+				//System.out.println("While Schleife lauft");
 				try {
-					byte event = dis.readByte();
+					byte event = disLift2Greifer.readByte();
 					System.out.println("lese Byte");
 					System.out.println(event); 
 					System.out.flush();
@@ -142,40 +159,50 @@ public class Lift {
 						switch (gevent) {
 						case STOP:
 							System.out.print("Befehl empfangen");
+							Delay.msDelay(2000);
 							break;
 						case AUF_KISTENHOEHE_FAHREN_UNTEN:
-							hochziehen(hoehekisteUnten, true);
-							dos.writeByte(GreiferEvents.AUF_KISTENHOEHE
+							hochziehen(hoehekisteUnten);
+							dosLift2Greifer.writeByte(GreiferEvents.AUF_KISTENHOEHE
 									.ordinal());
+							dosLift2Greifer.flush();
+							
 							break;
 
 						case AUF_KISTENHOEHE_FAHREN_MITTE:
-							hochziehen(hoehekisteMitte, true);
-							dos.writeByte(GreiferEvents.AUF_KISTENHOEHE
+							hochziehen(hoehekisteMitte);
+							dosLift2Greifer.writeByte(GreiferEvents.AUF_KISTENHOEHE
 									.ordinal());
+							dosLift2Greifer.flush();
 							break;
 
 						case AUF_KISTENHOEHE_FAHREN_OBEN:
-							hochziehen(hoehekisteOben, true);
-							dos.writeByte(GreiferEvents.AUF_KISTENHOEHE
+							hochziehen(hoehekisteOben);
+							dosLift2Greifer.writeByte(GreiferEvents.AUF_KISTENHOEHE
 									.ordinal());
+							dosLift2Greifer.flush();
+							System.out.println("Befehl an Greifer gesendet");
+							
 							break;
 
 						case AUF_CARGOAREA_FAHREN:
-							hochziehen(hoehecargo, true);
-							dos.writeByte(GreiferEvents.AUF_CARGOAREA
+							hochziehen(hoehecargo);
+							dosLift2Greifer.writeByte(GreiferEvents.AUF_CARGOAREA
 									.ordinal());
+							dosLift2Greifer.flush();
 							break;
 							
 						case CARGOAREA_REIN:
 							cargorein(cargodrehen);
 							//dos.writeByte(GreiferEvents.KISTE_IST_DRAUF.ordinal());
-							hochziehen(hoehefahren,true);
+							hochziehen(hoehefahren);
 							
 						case ABLADEN:
 							System.out.println("Befehl ABLADEN bekommen");
 							System.out.flush();
-							hochziehen(5000,true);
+							hochziehen(50000);
+							System.out.println("Hochgezogen");
+							System.out.flush();
 							cargorein(-20*cargodrehen);
 							break;
 							

@@ -57,8 +57,8 @@ public class NXTHGNXTNavigationModel extends NXTHGNavigationModel implements
 	private Thread receiver;
 	private boolean running = true;
 	private Thread connectorGreifer;
-	public DataInputStream disGreifer;
-	public DataOutputStream dosGreifer;
+	public DataInputStream disFahrer2Greifer;
+	public DataOutputStream dosFahrer2Greifer;
 	private DifferentialPilot robot;
 
 	/**
@@ -69,15 +69,15 @@ public class NXTHGNXTNavigationModel extends NXTHGNavigationModel implements
 		receiver.start();
 		System.out.println("Erzeuge NXTHGNXTNavigationModel");
 		System.out.flush();
-		Delay.msDelay(4000);
+		Delay.msDelay(1000);
 		connectorGreifer = new Thread(new ConnectorGreifer());
 		System.out.println("neuer Thread gemacht");
 		System.out.flush();
-		Delay.msDelay(4000);
+//		Delay.msDelay(4000);
 		connectorGreifer.start();
 		System.out.println("Greifer gestartet");
 		System.out.flush();
-		Delay.msDelay(4000);
+//		Delay.msDelay(4000);
 	}
 
 	/**
@@ -244,8 +244,8 @@ public class NXTHGNXTNavigationModel extends NXTHGNavigationModel implements
 			NXTCommConnector connector = Bluetooth.getConnector();
 			NXTConnection conn = connector.waitForConnection(0,
 					NXTConnection.PACKET);
-			dis = conn.openDataInputStream();
-			dos = conn.openDataOutputStream();
+			disPC2Fahrer = conn.openDataInputStream();
+			dosPC2Fahrer = conn.openDataOutputStream();
 			if (listener != null)
 				listener.whenConnected();
 			if (debug)
@@ -255,7 +255,7 @@ public class NXTHGNXTNavigationModel extends NXTHGNavigationModel implements
 					// Wait for any outstanding apply moves
 					/*if (mcl != null && mcl.isBusy())
 						Thread.yield();*/
-					byte event = dis.readByte();
+					byte event = disPC2Fahrer.readByte();
 					NavEvent navEvent = NavEvent.values()[event];
 					if (debug)
 						log(navEvent.name());
@@ -267,15 +267,16 @@ public class NXTHGNXTNavigationModel extends NXTHGNavigationModel implements
 						case LOAD_MAP: // Map sent from PC
 							if (map == null)
 								map = new LineMap();
-							map.loadObject(dis);
+							map.loadObject(disPC2Fahrer);
 							/*if (mcl != null)
 								mcl.setMap(map);*/
 							break;
 						case GOTO: // Update of target and request to go to the
 									// new target
+							System.out.println(Motor.A.getAcceleration());
 							if (target == null)
 								target = new Waypoint(0, 0);
-							target.loadObject(dis);
+							target.loadObject(disPC2Fahrer);
 							if (navigator != null)
 								navigator.goTo(target);
 							break;
@@ -285,27 +286,28 @@ public class NXTHGNXTNavigationModel extends NXTHGNavigationModel implements
 							if (pilot != null)
 								pilot.stop();
 							break;
-						case TRAVEL: // Request to travel a given distance
-							float distance = dis.readFloat();
+						case TRAVEL:
+							
+							float distance = disPC2Fahrer.readFloat();
 							if (pilot != null)
 								pilot.travel(distance);
 							break;
 						case ROTATE: // Request to rotate a given angle
-							float angle = dis.readFloat();
+							float angle = disPC2Fahrer.readFloat();
 							if (pilot != null
 									&& pilot instanceof RotateMoveController)
 								((RotateMoveController) pilot).rotate(angle);
 							break;
 						case ARC: // Request to travel an arc og given radius
 									// and angle
-							float radius = dis.readFloat();
-							angle = dis.readFloat();
+							float radius = disPC2Fahrer.readFloat();
+							angle = disPC2Fahrer.readFloat();
 							if (pilot != null
 									&& pilot instanceof ArcMoveController)
 								((ArcMoveController) pilot).arc(radius, angle);
 							break;
 						case ROTATE_TO: // Request to rotate to a given angle
-							angle = dis.readFloat();
+							angle = disPC2Fahrer.readFloat();
 							if (pp != null && pilot != null
 									&& pilot instanceof RotateMoveController)
 								((RotateMoveController) pilot)
@@ -324,28 +326,28 @@ public class NXTHGNXTNavigationModel extends NXTHGNavigationModel implements
 							currentPose = pp.getPose();
 							sendMoveStart = saveSendMoveStart;
 							sendMoveStop = saveSendMoveStop;
-							dos.writeByte(NavEvent.SET_POSE.ordinal());
-							currentPose.dumpObject(dos);
+							dosPC2Fahrer.writeByte(NavEvent.SET_POSE.ordinal());
+							currentPose.dumpObject(dosPC2Fahrer);
 							break;
 						case SET_POSE: // Request to set the current pose of the                                TUT DAS? ? ? ES MUSS FUNKTIONIEREN ! ! !
 										// robot
 							if (currentPose == null)
 								currentPose = new Pose(0, 0, 0);
-							currentPose.loadObject(dis);
+							currentPose.loadObject(disPC2Fahrer);
 							if (pp != null)
 								pp.setPose(currentPose);
 							break;
 						case ADD_WAYPOINT: // Request to add a waypoint
 							Waypoint wp = new Waypoint(0, 0);
-							wp.loadObject(dis);
+							wp.loadObject(disPC2Fahrer);
 							if (navigator != null)
 								navigator.addWaypoint(wp);
 							break;
 						case FIND_CLOSEST: // Request to find particle by
 											// co-ordinates and
 											// send its details to the PC
-							float x = dis.readFloat();
-							float y = dis.readFloat();
+							float x = disPC2Fahrer.readFloat();
+							float y = disPC2Fahrer.readFloat();
 							/*if (particles != null) {
 								dos.writeByte(NavEvent.CLOSEST_PARTICLE
 										.ordinal());
@@ -362,8 +364,9 @@ public class NXTHGNXTNavigationModel extends NXTHGNavigationModel implements
 											// and send them to the PC
 							if (scanner != null) {
 								readings = scanner.getRangeValues();
-								dos.writeByte(NavEvent.RANGE_READINGS.ordinal());
-								readings.dumpObject(dos);
+								dosPC2Fahrer.writeByte(NavEvent.RANGE_READINGS.ordinal());
+								dosFahrer2Greifer.flush();
+								readings.dumpObject(dosPC2Fahrer);
 							}
 							break;
 						/*case GET_READINGS: // Request to send current readings
@@ -400,11 +403,14 @@ public class NXTHGNXTNavigationModel extends NXTHGNavigationModel implements
 						case FOLLOW_PATH: // Follow a route sent from the PC
 							if (path == null)
 								path = new Path();
-							path.loadObject(dis);
+							path.loadObject(disPC2Fahrer);
 							if (navigator != null)
 								navigator.followPath(path);
 							break;
 						case START_NAVIGATOR:
+//							System.out.println(Motor.A.getAcceleration());
+//							System.out.flush();
+//							Delay.msDelay(2000);
 							if (navigator != null)
 								navigator.followPath();
 							break;
@@ -431,11 +437,11 @@ public class NXTHGNXTNavigationModel extends NXTHGNavigationModel implements
 						 * break;
 						 */
 						case PILOT_PARAMS:
-							float wheelDiameter = dis.readFloat();
-							float trackWidth = dis.readFloat();
-							int leftMotor = dis.readInt();
-							int rightMotor = dis.readInt();
-							boolean reverse = dis.readBoolean();
+							float wheelDiameter = disPC2Fahrer.readFloat();
+							float trackWidth = disPC2Fahrer.readFloat();
+							int leftMotor = disPC2Fahrer.readInt();
+							int rightMotor = disPC2Fahrer.readInt();
+							boolean reverse = disPC2Fahrer.readBoolean();
 							PilotProps props = new PilotProps();
 							String[] motors = { "A", "B", "C" };
 							props.setProperty(PilotProps.KEY_WHEELDIAMETER, ""
@@ -460,8 +466,8 @@ public class NXTHGNXTNavigationModel extends NXTHGNavigationModel implements
 						 * detector).setMaxDistance(maxDist); } } break;
 						 */
 						case RANGE_SCANNER_PARAMS:
-							int gearRatio = dis.readInt();
-							int headMotor = dis.readInt();
+							int gearRatio = disPC2Fahrer.readInt();
+							int headMotor = disPC2Fahrer.readInt();
 							RegulatedMotor[] regulatedMotors = { Motor.A,
 									Motor.B, Motor.C };
 							if (scanner instanceof RotatingRangeScanner) {
@@ -472,12 +478,12 @@ public class NXTHGNXTNavigationModel extends NXTHGNavigationModel implements
 							}
 							break;
 						case TRAVEL_SPEED:
-							float travelSpeed = dis.readFloat();
+							float travelSpeed = disPC2Fahrer.readFloat();
 							if (pilot != null)
 								pilot.setTravelSpeed(travelSpeed);
 							break;
 						case ROTATE_SPEED:
-							float rotateSpeed = dis.readFloat();
+							float rotateSpeed = disPC2Fahrer.readFloat();
 							if (pilot != null
 									&& pilot instanceof RotateMoveController) {
 								((RotateMoveController) pilot)
@@ -486,43 +492,47 @@ public class NXTHGNXTNavigationModel extends NXTHGNavigationModel implements
 							break;
 
 						case RANDOM_MOVE_PARAMS:
-							maxDistance = dis.readFloat();
-							clearance = dis.readFloat();
+							maxDistance = disPC2Fahrer.readFloat();
+							clearance = disPC2Fahrer.readFloat();
 							break;
 
 						case AUFLADEN_PAKET:
-							int groesse = dis.readInt();
-							int regal = dis.readInt();
+							int groesse = disPC2Fahrer.readInt();
+							int regal = disPC2Fahrer.readInt();
 							if (groesse == 1) {
 								if (regal == 1) {
-									dosGreifer.writeByte(GreiferEvents.KISTE_KLEIN_UNTEN
+									dosFahrer2Greifer.writeByte(GreiferEvents.KISTE_KLEIN_UNTEN
 													.ordinal());
-									dos.flush();
-									System.out.print("An Greifer weitergesendet");
+									dosFahrer2Greifer.flush();
+									System.out.print("1 1 An Greifer gesendet");
 								}
 							}
 
 							if (groesse == 2) {
 								if (regal == 1) {
-									dosGreifer.writeByte(GreiferEvents.KISTE_MITTEL_UNTEN
+									dosFahrer2Greifer.writeByte(GreiferEvents.KISTE_MITTEL_UNTEN
 													.ordinal());
-									dos.flush();
-									System.out.print("An Greifer weitergesendet");
+									dosFahrer2Greifer.flush();
+									System.out.print("2 1 An Greifer gesendet");
 								}
 							}
 
 							if (groesse == 2) {
 								if (regal == 2) {
+									dosFahrer2Greifer.writeByte(GreiferEvents.KISTE_MITTEL_MITTE
+											.ordinal());
+							dosFahrer2Greifer.flush();
+							System.out.print("2 2 An Greifer gesendet");
 
 								}
 							}
 
 							if (groesse == 3) {
 								if (regal == 3) {
-									dosGreifer.writeByte(GreiferEvents.KISTE_GROSS_OBEN
+									dosFahrer2Greifer.writeByte(GreiferEvents.KISTE_GROSS_OBEN
 													.ordinal());
-									dos.flush();
-									System.out.print("An Greifer weitergesendet");
+									dosFahrer2Greifer.flush();
+									System.out.print("3 3 An Greifer gesendet");
 								}
 							}
 
@@ -530,19 +540,22 @@ public class NXTHGNXTNavigationModel extends NXTHGNavigationModel implements
 
 							
 						case EINZIEHEN:
-							dosGreifer.writeByte(GreiferEvents.EINZIEHEN.ordinal());
+							dosFahrer2Greifer.writeByte(GreiferEvents.EINZIEHEN.ordinal());
+							dosFahrer2Greifer.flush();
+//							Delay.msDelay(4000);
+							System.out.println("Einziehen an Greifer weitergesendet");
 							break;
 							
 						case STOP_EINZIEHEN:
-							dosGreifer.writeByte(GreiferEvents.STOP_EINZIEHEN.ordinal());
+							dosFahrer2Greifer.writeByte(GreiferEvents.STOP_EINZIEHEN.ordinal());
 							break;
 							
 						case ABLADEN_PAKET:
 							System.out.println("  Befehl ABLADEN_PAKET bekommen ");
-							Delay.msDelay(4000);
-							dosGreifer.writeByte(GreiferEvents.ABLADEN.ordinal());
-							dosGreifer.flush();
-							Delay.msDelay(4000);
+//							Delay.msDelay(4000);
+							dosFahrer2Greifer.writeByte(GreiferEvents.ABLADEN.ordinal());
+							dosFahrer2Greifer.flush();
+//							Delay.msDelay(4000);
 							System.out.println(" Befehl ABLADEN_PAKET an greifer gesendet");
 							break;
 							
@@ -552,7 +565,7 @@ public class NXTHGNXTNavigationModel extends NXTHGNavigationModel implements
 							break;
 							
 						case DREHEN:
-							int winkel = dis.readInt();
+							int winkel = disPC2Fahrer.readInt();
 							robot.rotate(winkel, true);
 							break;
 
@@ -570,39 +583,55 @@ public class NXTHGNXTNavigationModel extends NXTHGNavigationModel implements
 		public void run() {
 			String name = "Greifer";
 			System.out.println("Vor RS485");
+			Delay.msDelay(1000);
 			NXTConnection con = RS485.getConnector().connect(name,
 					NXTConnection.PACKET);
 			System.out.println("Connected ");
 
-			disGreifer = con.openDataInputStream();
-			dosGreifer = con.openDataOutputStream();
+			disFahrer2Greifer = con.openDataInputStream();
+			dosFahrer2Greifer = con.openDataOutputStream();
 			running = true;
 			while (running){
 				try {
-					byte event = disGreifer.readByte();
+					byte event = disFahrer2Greifer.readByte();
+					System.out.println("Befehl empfangen");
+//					Delay.msDelay(2000);
 					GreiferEvents gevent = GreiferEvents.values()[event];
-					synchronized (this) {
+				//	synchronized (this) {
 						switch (gevent) {
 						case FAHR_ZURUECK_5CM:
-							navigator.getMoveController().travel(-5);
-							dosGreifer.writeByte(GreiferEvents.FAHRER_HINTEN_5CM
-									.ordinal());						
+							navigator.getMoveController().travel(-5,true);
+							warten();
+							dosFahrer2Greifer.writeByte(GreiferEvents.FAHRER_HINTEN_5CM
+									.ordinal());	
+							dosFahrer2Greifer.flush();
 							break;
 						case FAHR_VOR_5CM:
-							navigator.getMoveController().travel(10);
-							dosGreifer.writeByte(GreiferEvents.FAHRER_VORNE_5CM.ordinal());
+							navigator.getMoveController().travel(10,true);
+							warten();
+							dosFahrer2Greifer.writeByte(GreiferEvents.FAHRER_VORNE_5CM.ordinal());
+							dosFahrer2Greifer.flush();
+						
 						case FAHR_VOR:
-							navigator.getMoveController().travel(10);
-							dosGreifer.writeByte(GreiferEvents.FAHRER_VORNE
+							navigator.getMoveController().travel(10,true);
+							warten();
+							dosFahrer2Greifer.writeByte(GreiferEvents.FAHRER_VORNE
 									.ordinal());
+							dosFahrer2Greifer.flush();
 							break;
 
 						case FAHR_ZURUECK:
-							navigator.getMoveController().travel(-10);
-							dosGreifer.writeByte(GreiferEvents.FAHRER_HINTEN
+							navigator.getMoveController().travel(-10,true);
+							warten();
+							dosFahrer2Greifer.writeByte(GreiferEvents.FAHRER_HINTEN
 									.ordinal());
+							dosFahrer2Greifer.flush();
 							break;
-						}
+						
+						case STOP:
+							System.exit(0);
+							break;
+						//}
 					}
 				} catch (IOException ioe) {
 					fatal("IOException in receiver:");
@@ -613,6 +642,12 @@ public class NXTHGNXTNavigationModel extends NXTHGNavigationModel implements
 
 			// TODO Auto-generated method stub
 			System.out.println("ReceiverGreifer stopped");
+		}
+
+		private void warten() {
+			while (navigator.getMoveController().isMoving()){
+				Delay.msDelay(200);
+			}
 		}
 
 	}
@@ -700,9 +735,9 @@ public class NXTHGNXTNavigationModel extends NXTHGNavigationModel implements
 		try {
 			synchronized (receiver) {
 				if (debug)
-					log("Sending move started");
-				dos.writeByte(NavEvent.MOVE_STARTED.ordinal());
-				event.dumpObject(dos);
+				//	log("Sending move started");
+				dosPC2Fahrer.writeByte(NavEvent.MOVE_STARTED.ordinal());
+				event.dumpObject(dosPC2Fahrer);
 			}
 		} catch (IOException ioe) {
 			fatal("IOException in moveStarted");
@@ -718,14 +753,14 @@ public class NXTHGNXTNavigationModel extends NXTHGNavigationModel implements
 		try {
 			synchronized (receiver) {
 				if (debug)
-					log("Sending move stopped");
-				dos.writeByte(NavEvent.MOVE_STOPPED.ordinal());
-				event.dumpObject(dos);
+					//log("Sending move stopped");
+				dosPC2Fahrer.writeByte(NavEvent.MOVE_STOPPED.ordinal());
+				event.dumpObject(dosPC2Fahrer);
 				if (pp != null && autoSendPose) {
 					if (debug)
-						log("Sending set pose");
-					dos.writeByte(NavEvent.SET_POSE.ordinal());
-					pp.getPose().dumpObject(dos);
+						//log("Sending set pose");
+					dosPC2Fahrer.writeByte(NavEvent.SET_POSE.ordinal());
+					pp.getPose().dumpObject(dosPC2Fahrer);
 				}
 			}
 		} catch (IOException ioe) {
@@ -754,9 +789,9 @@ public class NXTHGNXTNavigationModel extends NXTHGNavigationModel implements
 	public void addWaypoint(Waypoint wp) {
 		try {
 			synchronized (receiver) {
-				dos.writeByte(NavEvent.ADD_WAYPOINT.ordinal());
+				dosPC2Fahrer.writeByte(NavEvent.ADD_WAYPOINT.ordinal());
 				// TODO: send waypoint to the PC
-				dos.flush();
+				dosPC2Fahrer.flush();
 			}
 		} catch (IOException ioe) {
 			fatal("IOException in addWaypoint");
@@ -769,8 +804,8 @@ public class NXTHGNXTNavigationModel extends NXTHGNavigationModel implements
 	public void atWaypoint(Waypoint waypoint, Pose pose, int sequence) {
 		try {
 			synchronized (receiver) {
-				dos.writeByte(NavEvent.WAYPOINT_REACHED.ordinal());
-				waypoint.dumpObject(dos);
+				dosPC2Fahrer.writeByte(NavEvent.WAYPOINT_REACHED.ordinal());
+				waypoint.dumpObject(dosPC2Fahrer);
 			}
 		} catch (IOException ioe) {
 			fatal("IOException in atWaypoint");
@@ -783,8 +818,8 @@ public class NXTHGNXTNavigationModel extends NXTHGNavigationModel implements
 	public void pathComplete(Waypoint waypoint, Pose pose, int sequence) {
 		try {
 			synchronized (receiver) {
-				dos.writeByte(NavEvent.PATH_COMPLETE.ordinal());
-				dos.flush();
+				dosPC2Fahrer.writeByte(NavEvent.PATH_COMPLETE.ordinal());
+				dosPC2Fahrer.flush();
 			}
 		} catch (IOException ioe) {
 			fatal("IOException in pathComplete");
@@ -797,8 +832,8 @@ public class NXTHGNXTNavigationModel extends NXTHGNavigationModel implements
 	public void pathInterrupted(Waypoint waypoint, Pose pose, int sequence) {
 		try {
 			synchronized (receiver) {
-				dos.writeByte(NavEvent.PATH_INTERRUPTED.ordinal());
-				dos.flush();
+				dosPC2Fahrer.writeByte(NavEvent.PATH_INTERRUPTED.ordinal());
+				dosPC2Fahrer.flush();
 			}
 		} catch (IOException ioe) {
 			fatal("IOException in pathInterrupted");
@@ -811,8 +846,8 @@ public class NXTHGNXTNavigationModel extends NXTHGNavigationModel implements
 	public void pathGenerated() {
 		try {
 			synchronized (receiver) {
-				dos.writeByte(NavEvent.PATH_GENERATED.ordinal());
-				dos.flush();
+				dosPC2Fahrer.writeByte(NavEvent.PATH_GENERATED.ordinal());
+				dosPC2Fahrer.flush();
 			}
 		} catch (IOException ioe) {
 			fatal("IOException in pathGenerated");

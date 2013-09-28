@@ -34,8 +34,8 @@ import lejos.robotics.pathfinding.Path;
 public abstract class NXTHGNavigationModel {
 	protected LineMap map;
 	protected String nxtName;
-	protected DataInputStream dis;
-	protected DataOutputStream dos;
+	protected DataInputStream disPC2Fahrer;
+	protected DataOutputStream dosPC2Fahrer;
 	protected int numReadings = 0;
 	protected Pose currentPose = new Pose(0,0,0);
 	protected Waypoint target = null;

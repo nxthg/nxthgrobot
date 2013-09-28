@@ -8,6 +8,9 @@ import lejos.nxt.Button;
 import lejos.nxt.LCD;
 import lejos.nxt.NXTRegulatedMotor;
 import lejos.nxt.Motor;
+import lejos.nxt.SensorPort;
+import lejos.nxt.TouchSensor;
+import lejos.nxt.UltrasonicSensor;
 import lejos.nxt.comm.Bluetooth;
 import lejos.nxt.comm.NXTCommConnector;
 import lejos.nxt.comm.NXTConnection;
@@ -27,22 +30,22 @@ public class Greifer {
 													// rein/raus????
 	static NXTRegulatedMotor MArmRechts = Motor.B;
 	static int aussen = 200;
-	static int greifenKlein = 200; // Wie viel um ein kleines Paket zu greifen
+	static int greifenKlein = 20; // Wie viel um ein kleines Paket zu greifen
 									// auseinander????
-	static int greifenMittel = 300; // Wie viel um ein mittleres Paket zu
+	static int greifenMittel = 50; // Wie viel um ein mittleres Paket zu
 									// greifen auseinander ????
-	static int greifenGross = 400; // Wie viel um ein großes Paket zu greifen
-									// auseinander????
+	static int greifenGross = -37000; // Wie viel um ein großes Paket zu greifen
+										// auseinander????
 	static int greifen;
 	static int außen = 500;
 	static int kisteBreite;
 	static int kisteTiefe;
 	static int kisteTiefeMittel = 30;
 	static int kisteTiefeGross = 50;
-	private static DataInputStream disFahrer;
-	private static DataOutputStream dosFahrer;
-	private static DataInputStream disLift;
-	private static DataOutputStream dosLift;
+	private static DataInputStream disGreifer2Fahrer;
+	private static DataOutputStream dosGreifer2Fahrer;
+	private static DataInputStream disGreifer2Lift;
+	private static DataOutputStream dosGreifer2Lift;
 	private boolean running;
 	private Thread receiverFahrer;
 	private Thread receiverLift;
@@ -56,11 +59,11 @@ public class Greifer {
 		System.out.println("erzeuge greifer");
 		System.out.flush();
 		Delay.msDelay(4000);
-		/*while (unverbunden) {
-			Delay.msDelay(100);
-		}
-		System.out.println("Mit Lift Verbunden"
-				+ "Warte auf Verbindung zum Fahrer");*/
+		/*
+		 * while (unverbunden) { Delay.msDelay(100); }
+		 * System.out.println("Mit Lift Verbunden" +
+		 * "Warte auf Verbindung zum Fahrer");
+		 */
 		receiverFahrer = new Thread(new ReceiverFahrer());
 		System.out.println("neuer Thread gemacht");
 		System.out.flush();
@@ -72,17 +75,10 @@ public class Greifer {
 	}
 
 	public static void main(String[] args) {
+		Motor.C.setSpeed(3000);
 		LCD.drawInt(MJustieren.getTachoCount(), 0, 0);
 		model = new Greifer();
 
-		Button.waitForAnyPress();
-		model.shutDown();
-		try {
-			Thread.sleep(4000);
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
 	} // end of main
 
 	private void shutDown() {
@@ -97,103 +93,107 @@ public class Greifer {
 					NXTConnection.PACKET);
 
 			System.out.println(" Mit Fahrer Verbunden ");
-			disFahrer = con.openDataInputStream();
-			dosFahrer = con.openDataOutputStream();
+			disGreifer2Fahrer = con.openDataInputStream();
+			dosGreifer2Fahrer = con.openDataOutputStream();
 			System.out.println(" dis und dos erstellt ");
 			running = true;
 			while (running) {
 				try {
-					System.out.println("In while schleife");
-					byte event = disFahrer.readByte();
-					System.out.println("warte auf gevent");
+					// System.out.println("In while schleife");
+					// Delay.msDelay(4000);
+					byte event = disGreifer2Fahrer.readByte();
+					// Delay.msDelay(4000);
+					// System.out.println("warte auf gevent");
+					// System.out.flush();
 					GreiferEvents gevent = GreiferEvents.values()[event];
 					System.out.println("warte auf synchro");
-					synchronized (this) {
-						System.out.println("warte auf befehl");
-						switch (gevent) {
-						
-						case KISTE_KLEIN_UNTEN: // vom Fahrer
-							System.out.println("  Befehl Aufladen bekommen ");
-							justieren(greifenKlein + 5);
-							kisteBreite = greifenKlein;
-							kisteTiefe = kisteTiefeMittel;
-							dosLift.writeByte(GreiferEvents.AUF_KISTENHOEHE_FAHREN_UNTEN
-									.ordinal()); // Zu Lift
+					System.out.flush();
+					// synchronized (this) {
+					System.out.println("warte auf befehl");
+					switch (gevent) {
 
-							break;
-						case KISTE_MITTEL_UNTEN:
-							System.out.println("  Befehl Aufladen bekommen ");
-							justieren(greifenMittel + 5);
-							kisteBreite = greifenMittel;
-							kisteTiefe = kisteTiefeMittel;
-							dosLift.writeByte(GreiferEvents.AUF_KISTENHOEHE_FAHREN_UNTEN
-									.ordinal());
-							break;
+					case KISTE_KLEIN_UNTEN: // vom Fahrer
+						new Thread(new KisteKleinUnten()).start();
+						// Zu Lift
 
-						case KISTE_MITTEL_MITTE:
-							System.out.println("  Befehl Aufladen bekommen ");
-							justieren(greifenMittel + 5);
-							kisteBreite = greifenMittel;
-							kisteTiefe = kisteTiefeMittel;
-							dosLift.writeByte(GreiferEvents.AUF_KISTENHOEHE_FAHREN_MITTE
-									.ordinal());
-							break;
+						break;
+					case KISTE_MITTEL_UNTEN:
+						new Thread(new KisteMittelUnten()).start();
+						break;
 
-						case KISTE_GROSS_OBEN:
-							System.out.println("  Befehl Aufladen bekommen ");
-							justieren(greifenGross + 5);
-							kisteBreite = greifenGross;
-							kisteTiefe = kisteTiefeGross;
-							dosLift.writeByte(GreiferEvents.AUF_KISTENHOEHE_FAHREN_OBEN
-									.ordinal());
-							break;
+					case KISTE_MITTEL_MITTE:
+						new Thread(new KisteMittelMitte()).start();
+						break;
 
-						case FAHRER_VORNE:
-							justieren(kisteBreite);
-							//reinArme(9999999,true);
-							dosFahrer.writeByte(GreiferEvents.FAHR_ZURUECK_5CM.ordinal());
-							break;
-							
-						case FAHRER_HINTEN_5CM:
-							justieren(kisteBreite+10);
-							dosFahrer.writeByte(GreiferEvents.FAHR_VOR_5CM.ordinal());
-							break;
-						
-						case FAHRER_VORNE_5CM:
-							justieren(kisteBreite);
-							reinArme(9999999,true);
-							//dosFahrer.writeByte(GreiferEvents.FAHR_ZURUECK.ordinal());
-							break;
-						case STOP_EINZIEHEN:
-							stopArme();
-							dosFahrer.writeByte(GreiferEvents.FAHR_ZURUECK
-									.ordinal());
-							break;
+					case KISTE_GROSS_OBEN:
+						System.out.println("  Befehl Aufladen bekommen ");
+						System.out.flush();
+						Delay.msDelay(4000);
+						justieren(greifenGross + 50);
+						kisteBreite = greifenGross;
+						kisteTiefe = kisteTiefeGross;
+						dosGreifer2Lift
+								.writeByte(GreiferEvents.AUF_KISTENHOEHE_FAHREN_OBEN
+										.ordinal());
+						dosGreifer2Lift.flush();
+						break;
 
-						case FAHRER_HINTEN:
-							dosLift.writeByte(GreiferEvents.AUF_CARGOAREA_FAHREN
-									.ordinal());
-							break;
+					case FAHRER_VORNE:
+						justieren(kisteBreite);
+						// reinArme(9999999,true);
+						dosGreifer2Fahrer
+								.writeByte(GreiferEvents.FAHR_ZURUECK_5CM
+										.ordinal());
+						dosGreifer2Fahrer.flush();
+						break;
 
-						case STOP:
-							dosLift.writeByte(GreiferEvents.STOP.ordinal());
-							System.exit(0);
-							break;
+					case FAHRER_HINTEN_5CM:
+						justieren(kisteBreite + 10);
+						dosGreifer2Fahrer.writeByte(GreiferEvents.FAHR_VOR_5CM
+								.ordinal());
+						dosGreifer2Fahrer.flush();
+						break;
 
-						case ABLADEN:
-							System.out.println("Befehl ABLADEN bekommen");
-							justieren(aussen);
-							System.out.println("Nach justieren");
-							System.out.flush();
-							dosLift.writeByte(GreiferEvents.ABLADEN.ordinal());
-							dosLift.flush();
-							System.out.println(" Befehl ABLADEN an lift gesendet");
-							break;
+					case FAHRER_VORNE_5CM:
+						justieren(kisteBreite);
+						reinArme(9999999, true);
+						// dosGreifer2Fahrer.writeByte(GreiferEvents.FAHR_ZURUECK.ordinal());
+						break;
+					case STOP_EINZIEHEN:
+						stopArme();
+						dosGreifer2Fahrer.writeByte(GreiferEvents.FAHR_ZURUECK
+								.ordinal());
+						dosGreifer2Fahrer.flush();
+						break;
 
-						default:
-							LCD.drawString("Unbekannter Befehl", 1, 1);
-							break;
-						}
+					case FAHRER_HINTEN:
+						dosGreifer2Lift
+								.writeByte(GreiferEvents.AUF_CARGOAREA_FAHREN
+										.ordinal());
+						dosGreifer2Lift.flush();
+						break;
+
+					case STOP:
+						dosGreifer2Lift.writeByte(GreiferEvents.STOP.ordinal());
+						dosGreifer2Lift.flush();
+						System.exit(0);
+						break;
+
+					case ABLADEN:
+						System.out.println("Befehl ABLADEN bekommen");
+						justieren(aussen);
+						System.out.println("Nach justieren");
+						System.out.flush();
+						dosGreifer2Lift.writeByte(GreiferEvents.ABLADEN
+								.ordinal());
+						dosGreifer2Lift.flush();
+						System.out.println(" Befehl ABLADEN an lift gesendet");
+						break;
+
+					default:
+						LCD.drawString("Unbekannter Befehl", 1, 1);
+						break;
+					// }
 					}
 				} catch (IOException ioe) {
 					fatal("IOException in receiver:");
@@ -202,6 +202,68 @@ public class Greifer {
 			System.out.println("ReceiverFahrer stopped");
 		}
 
+		class KisteKleinUnten implements Runnable {
+			public void run() {
+
+				System.out.println("  Befehl Aufladen bekommen ");
+				justieren(greifenMittel + 5);
+				kisteBreite = greifenMittel;
+				kisteTiefe = kisteTiefeMittel;
+				try {
+					dosGreifer2Lift
+							.writeByte(GreiferEvents.AUF_KISTENHOEHE_FAHREN_UNTEN
+									.ordinal());
+					dosGreifer2Lift.flush();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				
+
+			}
+		}
+		
+		class KisteMittelMitte implements Runnable {
+			public void run() {
+
+				System.out.println("  Befehl Aufladen bekommen ");
+				justieren(greifenMittel + 5);
+				kisteBreite = greifenMittel;
+				kisteTiefe = kisteTiefeMittel;
+				try {
+					dosGreifer2Lift
+							.writeByte(GreiferEvents.AUF_KISTENHOEHE_FAHREN_MITTE
+									.ordinal());
+					dosGreifer2Lift.flush();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				
+				
+
+			}
+		}
+		
+		class KisteMittelUnten implements Runnable {
+			public void run() {
+
+				System.out.println("  Befehl Aufladen bekommen ");
+				justieren(greifenKlein + 5);
+				kisteBreite = greifenKlein;
+				kisteTiefe = kisteTiefeMittel;
+				try {
+					dosGreifer2Lift
+							.writeByte(GreiferEvents.AUF_KISTENHOEHE_FAHREN_UNTEN
+									.ordinal());
+					dosGreifer2Lift.flush();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+
+			}
+		}
 	}
 
 	class ConnectorLift implements Runnable {
@@ -213,20 +275,24 @@ public class Greifer {
 			System.out.println("Verbindung hergestellt");
 			unverbunden = false;
 			System.out.flush();
-			disLift = conn.openDataInputStream();
-			dosLift = conn.openDataOutputStream();
-			
+			disGreifer2Lift = conn.openDataInputStream();
+			dosGreifer2Lift = conn.openDataOutputStream();
+
 			running = true;
 			while (running) {
 				try {
 					System.out.println("In while Schleife");
-					byte event = disLift.readByte();
+					byte event = disGreifer2Lift.readByte();
 					GreiferEvents gevent = GreiferEvents.values()[event];
 					synchronized (this) {
 						switch (gevent) {
 
 						case AUF_KISTENHOEHE:
-							dosFahrer.writeByte(GreiferEvents.FAHR_VOR.ordinal());
+							System.out.println("Lift auf Kistenhöhe");
+							dosGreifer2Fahrer.writeByte(GreiferEvents.FAHR_VOR
+									.ordinal());
+							dosGreifer2Fahrer.flush();
+							System.out.println("Fahrer soll vor");
 							// dosLift.writeByte(GreiferEvents.AUF_CARGOAREA_FAHREN.ordinal());
 							break; // Signal zum Hoch/runterziehen an Lift auf
 									// cargoarea
@@ -234,8 +300,10 @@ public class Greifer {
 						case AUF_CARGOAREA: // Sobald signal komm dass hebebühne
 											// auf cargoarea-höhe ist:
 							reinArme(kisteTiefe, true);
-							dosLift.writeByte(GreiferEvents.CARGOAREA_REIN
-									.ordinal());
+							dosGreifer2Lift
+									.writeByte(GreiferEvents.CARGOAREA_REIN
+											.ordinal());
+							dosGreifer2Fahrer.flush();
 							// justieren(außen);
 							break;
 
@@ -251,6 +319,18 @@ public class Greifer {
 
 						case AUF_BODEN_AUSWERFEN:
 							drauf(-ziehdrehungen);
+							break;
+
+						case STOP:
+							try {
+								dosGreifer2Fahrer.writeByte(GreiferEvents.STOP
+										.ordinal());
+								dosGreifer2Fahrer.flush();
+							} catch (IOException e) {
+								// TODO Auto-generated catch block
+								e.printStackTrace();
+							}
+							System.exit(0);
 							break;
 
 						default:
@@ -282,18 +362,16 @@ public class Greifer {
 	public static void reinArme(int a, boolean w) {
 		MArmLinks.rotate(a, true);
 		MArmRechts.rotate(a, w);
-		while (MArmLinks.isMoving()) {
-			Delay.msDelay(10);
-		}
+		/*
+		 * while (MArmLinks.isMoving()) { Delay.msDelay(10); }
+		 */
 	}
- 
-	
-	public static void stopArme(){
+
+	public static void stopArme() {
 		MArmLinks.stop();
-		MArmRechts.stop();	
-		}
-	
-	
+		MArmRechts.stop();
+	}
+
 	public static void fatal(String message) {
 		System.out.println(message);
 		Delay.msDelay(5000);

@@ -3,6 +3,9 @@ package de.nxthg.fahrer;
 import java.io.IOException;
 
 import lejos.nxt.Button;
+import lejos.nxt.Motor;
+import lejos.nxt.SensorPort;
+import lejos.nxt.UltrasonicSensor;
 import lejos.robotics.RegulatedMotor;
 import de.nxthg.fahrer.NXTHGNavigationModel.NavEvent;
 import de.nxthg.greifer.GreiferEvents;
@@ -30,6 +33,9 @@ public class Fahrer implements NXTHGNavEventListener {
 	private Navigator navigator;
 	
 	public static void main(String[] args) throws Exception {
+//		UltrasonicSensor us1 = new UltrasonicSensor(SensorPort.S1);
+//		UltrasonicSensor us2 = new UltrasonicSensor(SensorPort.S2);
+//		UltrasonicSensor us3 = new UltrasonicSensor(SensorPort.S3);
 		System.out.println("starte Programm");
 		Fahrer myFahrer = new Fahrer();
 		System.out.println("Fahrer erzeugt");
@@ -46,21 +52,10 @@ public void run() throws Exception {
     	model = new NXTHGNXTNavigationModel();
     	System.out.println("model erzeugt");
     	System.out.flush();
-		Delay.msDelay(4000);
+    //	Delay.msDelay(4000);
     	model.addListener(this);
     	model.setDebug(true);
     	model.setSendMoveStart(true);
-    	
-    	
-    	/*System.out.println("Vor abladen senden");
-    	
-    	model.dosGreifer.writeByte(GreiferEvents.ABLADEN.ordinal());
-    	model.dosGreifer.flush();
-    	System.out.println("Nach abladen senden");*/
-    	
-    	
-    	Delay.msDelay(4000000);
-    	model.shutDown();
 	}
 
 	public void whenConnected() {
@@ -70,12 +65,16 @@ public void run() throws Exception {
     	} catch (IOException ioe) {
     		System.exit(1);
     	}
-    	float wheelDiameter = Float.parseFloat(pp.getProperty(PilotProps.KEY_WHEELDIAMETER, "4.96"));
-    	float trackWidth = Float.parseFloat(pp.getProperty(PilotProps.KEY_TRACKWIDTH, "13.0"));
+    	float wheelDiameter = Float.parseFloat(pp.getProperty(PilotProps.KEY_WHEELDIAMETER, "8.1"));
+    	float trackWidth = Float.parseFloat(pp.getProperty(PilotProps.KEY_TRACKWIDTH, "23.6"));
     	RegulatedMotor leftMotor = PilotProps.getMotor(pp.getProperty(PilotProps.KEY_LEFTMOTOR, "B"));
     	RegulatedMotor rightMotor = PilotProps.getMotor(pp.getProperty(PilotProps.KEY_RIGHTMOTOR, "C"));
     	boolean reverse = Boolean.parseBoolean(pp.getProperty(PilotProps.KEY_REVERSE,"false"));
-    	
+    	leftMotor.setAcceleration(5);
+    	rightMotor.setAcceleration(5);
+    	System.out.println("Beschleunigung auf 5");
+    	System.out.flush();
+    	Delay.msDelay(2000);
     	robot = new DifferentialPilot(wheelDiameter,trackWidth,leftMotor,rightMotor,reverse);
     	navigator = new Navigator(robot);
     	
