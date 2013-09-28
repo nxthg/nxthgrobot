@@ -11,7 +11,7 @@ public class IssPathes {
 	static final Waypoint[] PATH1 = {new Waypoint(150.4, 146.6), new Waypoint(175.4, 146.6)};
 	
     // von dort zur zweiten kiste
-	static final Waypoint[] PATH2 = {new Waypoint(175.4, 180.2)};
+	static final Waypoint[] PATH2 = {new Waypoint(175.0, 180.2), new Waypoint(175.4, 180.2)};
     
     // von der zweiten kiste ueber die rampe
 	static final Waypoint[] PATH3 = {new Waypoint(150.4, 202.7), new Waypoint(150.4, 380.0)};

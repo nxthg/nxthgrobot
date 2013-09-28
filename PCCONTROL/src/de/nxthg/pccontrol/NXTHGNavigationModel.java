@@ -38,7 +38,7 @@ public abstract class NXTHGNavigationModel {
 	protected DataInputStream dis;
 	protected DataOutputStream dos;
 	protected int numReadings = 0;
-	protected Pose currentPose = new Pose(150,50,90);
+	protected Pose currentPose = new Pose(150,29,90);
 	protected Waypoint target = null;
 	protected MCLParticleSet particles;
 	protected MCLPoseProvider mcl;

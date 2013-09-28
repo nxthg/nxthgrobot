@@ -1,0 +1,5 @@
+reverse=true
+wheelDiameter=7.75
+leftMotor=A
+rightMotor=B
+trackWidth=25.75
