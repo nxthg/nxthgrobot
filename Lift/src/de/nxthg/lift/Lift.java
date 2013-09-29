@@ -26,7 +26,7 @@ public class Lift {
 	static int hoehekiste;
 	static int hoehekisteUnten = 0;
 	static int hoehekisteMitte = 50;
-	static int hoehekisteOben = 5000;
+	static int hoehekisteOben = 5350;
 	static int hoehefahren = 3 * 360;
 	static NXTRegulatedMotor MTurmLinks = Motor.A;
 	static NXTRegulatedMotor MTurmRechts = Motor.B;
@@ -151,7 +151,6 @@ public class Lift {
 				//System.out.println("While Schleife lauft");
 				try {
 					byte event = disLift2Greifer.readByte();
-					System.out.println("lese Byte");
 					System.out.println(event); 
 					System.out.flush();
 					GreiferEvents gevent = GreiferEvents.values()[event];
@@ -203,6 +202,8 @@ public class Lift {
 							hochziehen(50000);
 							System.out.println("Hochgezogen");
 							System.out.flush();
+							dosLift2Greifer.writeByte(GreiferEvents.STARTEN_ABLADEN.ordinal());
+							dosLift2Greifer.flush();
 							cargorein(-20*cargodrehen);
 							break;
 							

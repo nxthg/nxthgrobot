@@ -29,12 +29,12 @@ public class Greifer {
 													// linken Arm; forward ist
 													// rein/raus????
 	static NXTRegulatedMotor MArmRechts = Motor.B;
-	static int aussen = 200;
+	static int aussen = -21000;
 	static int greifenKlein = 20; // Wie viel um ein kleines Paket zu greifen
 									// auseinander????
 	static int greifenMittel = 50; // Wie viel um ein mittleres Paket zu
 									// greifen auseinander ????
-	static int greifenGross = -37000; // Wie viel um ein groﬂes Paket zu greifen
+	static int greifenGross = -19000; // Wie viel um ein groﬂes Paket zu greifen
 										// auseinander????
 	static int greifen;
 	static int auﬂen = 500;
@@ -99,17 +99,16 @@ public class Greifer {
 			running = true;
 			while (running) {
 				try {
-					// System.out.println("In while schleife");
+					 System.out.println("In fahrer schleife");
 					// Delay.msDelay(4000);
 					byte event = disGreifer2Fahrer.readByte();
 					// Delay.msDelay(4000);
 					// System.out.println("warte auf gevent");
 					// System.out.flush();
 					GreiferEvents gevent = GreiferEvents.values()[event];
-					System.out.println("warte auf synchro");
+					System.out.println(gevent);
 					System.out.flush();
 					// synchronized (this) {
-					System.out.println("warte auf befehl");
 					switch (gevent) {
 
 					case KISTE_KLEIN_UNTEN: // vom Fahrer
@@ -126,45 +125,28 @@ public class Greifer {
 						break;
 
 					case KISTE_GROSS_OBEN:
-						System.out.println("  Befehl Aufladen bekommen ");
-						System.out.flush();
-						Delay.msDelay(4000);
-						justieren(greifenGross + 50);
-						kisteBreite = greifenGross;
-						kisteTiefe = kisteTiefeGross;
-						dosGreifer2Lift
-								.writeByte(GreiferEvents.AUF_KISTENHOEHE_FAHREN_OBEN
-										.ordinal());
-						dosGreifer2Lift.flush();
+						new Thread(new KisteGrossOben()).start();
 						break;
+						
 
 					case FAHRER_VORNE:
-						justieren(kisteBreite);
-						// reinArme(9999999,true);
-						dosGreifer2Fahrer
-								.writeByte(GreiferEvents.FAHR_ZURUECK_5CM
-										.ordinal());
-						dosGreifer2Fahrer.flush();
+						new Thread(new FahrerVorne()).start();
 						break;
 
 					case FAHRER_HINTEN_5CM:
-						justieren(kisteBreite + 10);
-						dosGreifer2Fahrer.writeByte(GreiferEvents.FAHR_VOR_5CM
-								.ordinal());
-						dosGreifer2Fahrer.flush();
+						new Thread(new FahrerHinten5CM()).start();
 						break;
 
 					case FAHRER_VORNE_5CM:
-						justieren(kisteBreite);
-						reinArme(9999999, true);
-						// dosGreifer2Fahrer.writeByte(GreiferEvents.FAHR_ZURUECK.ordinal());
+						new Thread(new FahrerVorne5CM()).start();
 						break;
-					case STOP_EINZIEHEN:
-						stopArme();
-						dosGreifer2Fahrer.writeByte(GreiferEvents.FAHR_ZURUECK
-								.ordinal());
-						dosGreifer2Fahrer.flush();
-						break;
+
+						//					case STOP_EINZIEHEN:
+//						stopArme();
+//						dosGreifer2Fahrer.writeByte(GreiferEvents.FAHR_ZURUECK
+//								.ordinal());
+//						dosGreifer2Fahrer.flush();
+//						break;
 
 					case FAHRER_HINTEN:
 						dosGreifer2Lift
@@ -180,14 +162,7 @@ public class Greifer {
 						break;
 
 					case ABLADEN:
-						System.out.println("Befehl ABLADEN bekommen");
-						justieren(aussen);
-						System.out.println("Nach justieren");
-						System.out.flush();
-						dosGreifer2Lift.writeByte(GreiferEvents.ABLADEN
-								.ordinal());
-						dosGreifer2Lift.flush();
-						System.out.println(" Befehl ABLADEN an lift gesendet");
+						new Thread(new Abladen()).start();
 						break;
 
 					default:
@@ -223,6 +198,26 @@ public class Greifer {
 			}
 		}
 		
+		class KisteMittelUnten implements Runnable {
+			public void run() {
+
+				System.out.println("  Befehl Aufladen bekommen ");
+				justieren(greifenKlein + 5);
+				kisteBreite = greifenKlein;
+				kisteTiefe = kisteTiefeMittel;
+				try {
+					dosGreifer2Lift
+							.writeByte(GreiferEvents.AUF_KISTENHOEHE_FAHREN_UNTEN
+									.ordinal());
+					dosGreifer2Lift.flush();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+
+			}
+		}
+		
 		class KisteMittelMitte implements Runnable {
 			public void run() {
 
@@ -245,23 +240,107 @@ public class Greifer {
 			}
 		}
 		
-		class KisteMittelUnten implements Runnable {
+		class KisteGrossOben implements Runnable {
 			public void run() {
 
 				System.out.println("  Befehl Aufladen bekommen ");
-				justieren(greifenKlein + 5);
-				kisteBreite = greifenKlein;
-				kisteTiefe = kisteTiefeMittel;
+				System.out.flush();
+				justieren(aussen);
+				kisteBreite = greifenGross;
+				kisteTiefe = kisteTiefeGross;
 				try {
 					dosGreifer2Lift
-							.writeByte(GreiferEvents.AUF_KISTENHOEHE_FAHREN_UNTEN
+							.writeByte(GreiferEvents.AUF_KISTENHOEHE_FAHREN_OBEN
 									.ordinal());
 					dosGreifer2Lift.flush();
 				} catch (IOException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
+				
+				
+				
 
+			}
+		}
+		
+		class FahrerVorne implements Runnable {
+			public void run() {
+
+				justieren(kisteBreite);
+				// reinArme(9999999,true);
+				try {
+					dosGreifer2Fahrer
+							.writeByte(GreiferEvents.FAHR_ZURUECK_5CM
+									.ordinal());
+					dosGreifer2Fahrer.flush();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			
+				
+
+			}
+		}
+		
+		class FahrerHinten5CM implements Runnable {
+			public void run() {
+
+				justieren(kisteBreite + 10);
+				try {
+					dosGreifer2Fahrer.writeByte(GreiferEvents.FAHR_VOR_5CM
+							.ordinal());
+					dosGreifer2Fahrer.flush();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				
+			
+				
+
+			}
+		}
+		
+		class FahrerVorne5CM implements Runnable {
+			public void run() {
+
+				justieren(kisteBreite);
+				reinArme(kisteTiefe, true);
+				
+				 try {
+					 dosGreifer2Fahrer.writeByte(GreiferEvents.FAHR_ZURUECK.ordinal());
+					dosGreifer2Fahrer.flush();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				
+			
+				
+
+			}
+		}
+		
+		class Abladen implements Runnable {
+			public void run() {
+
+				System.out.println("Befehl ABLADEN bekommen");
+				justieren(aussen);
+				//System.out.println("Nach justieren");
+				//System.out.flush();
+				try {
+					dosGreifer2Lift.writeByte(GreiferEvents.ABLADEN
+							.ordinal());
+					dosGreifer2Lift.flush();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+		
+				System.out.println(" Befehl ABLADEN an lift gesendet");
+				System.out.flush();
 			}
 		}
 	}
@@ -281,9 +360,11 @@ public class Greifer {
 			running = true;
 			while (running) {
 				try {
-					System.out.println("In while Schleife");
+					System.out.println("In lift Schleife");
 					byte event = disGreifer2Lift.readByte();
 					GreiferEvents gevent = GreiferEvents.values()[event];
+					System.out.println(gevent);
+					System.out.flush();
 					synchronized (this) {
 						switch (gevent) {
 
@@ -293,6 +374,7 @@ public class Greifer {
 									.ordinal());
 							dosGreifer2Fahrer.flush();
 							System.out.println("Fahrer soll vor");
+							System.out.flush();
 							// dosLift.writeByte(GreiferEvents.AUF_CARGOAREA_FAHREN.ordinal());
 							break; // Signal zum Hoch/runterziehen an Lift auf
 									// cargoarea
@@ -308,18 +390,18 @@ public class Greifer {
 							break;
 
 						case STARTEN_ABLADEN:
-							justieren(greifen); // Signal zum runterfahren und
+							reinArme(-20*kisteTiefe,true); // Signal zum runterfahren und
 												// auswerfen an Lift
 							break;
 
-						case AUF_CARGOAREA_AUSWERFEN: // Signal zum runterfahren
-														// an lift
-							drauf(-ziehdrehungen);
-							break;
+//						case AUF_CARGOAREA_AUSWERFEN: // Signal zum runterfahren
+//														// an lift
+//							drauf(-ziehdrehungen);
+//							break;
 
-						case AUF_BODEN_AUSWERFEN:
-							drauf(-ziehdrehungen);
-							break;
+//						case AUF_BODEN_AUSWERFEN:
+//							drauf(-ziehdrehungen);
+//							break;
 
 						case STOP:
 							try {
@@ -349,10 +431,8 @@ public class Greifer {
 
 	public static void justieren(int b) {
 		MJustieren.rotateTo(b);
-		while (MJustieren.isMoving()) {
-			Delay.msDelay(10);
 		}
-	}
+	
 
 	public static void drauf(int d) {
 		reinArme(d, false);

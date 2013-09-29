@@ -48,12 +48,12 @@ public class NXTHGNXTNavigationModel extends NXTHGNavigationModel implements
 	// protected PathFinder finder; // Only one local path finder is allowed
 	protected RangeScanner scanner; // Only one scanner is allowed
 	protected NXTHGNavEventListener listener;
-
+	static int versatz;
+	static final float[] versatzwinkel= {-200.0f, -175.0f,-150.0f, -125.0f, -100.0f,0.0f, 100.0f, 125.0f, 150.0f, 175.0f };
 	protected float clearance = 10;
 	protected float maxDistance = 40;
 	protected boolean autoSendPose = true;
 	protected boolean sendMoveStart = false, sendMoveStop = true;
-
 	private Thread receiver;
 	private boolean running = true;
 	private Thread connectorGreifer;
@@ -255,8 +255,11 @@ public class NXTHGNXTNavigationModel extends NXTHGNavigationModel implements
 					// Wait for any outstanding apply moves
 					/*if (mcl != null && mcl.isBusy())
 						Thread.yield();*/
+					System.out.println("in PC schleife");
 					byte event = disPC2Fahrer.readByte();
 					NavEvent navEvent = NavEvent.values()[event];
+					System.out.println(navEvent);
+					System.out.flush();
 					if (debug)
 						log(navEvent.name());
 					if (listener != null)
@@ -561,7 +564,10 @@ public class NXTHGNXTNavigationModel extends NXTHGNavigationModel implements
 							
 							
 						case SEITWAERTS:
-							
+							versatz = disPC2Fahrer.readByte();
+							new Thread (new Seitwaerts()).start();
+							System.out.println("Seitwärts gelesen, thread gestartet");
+							System.out.flush();
 							break;
 							
 						case DREHEN:
@@ -575,6 +581,19 @@ public class NXTHGNXTNavigationModel extends NXTHGNavigationModel implements
 					fatal("IOException in receiver:");
 				}
 			}
+		}
+	}
+	
+	
+	
+	class Seitwaerts implements Runnable {
+		public void run() {
+			
+		robot.rotate(versatzwinkel[versatz+5]);
+		navigator.getMoveController().travel(-15);
+		robot.rotate(-2*versatzwinkel[versatz+5]);
+		navigator.getMoveController().travel(15);
+		robot.rotate(versatzwinkel[versatz+5]);
 		}
 	}
 
@@ -593,39 +612,28 @@ public class NXTHGNXTNavigationModel extends NXTHGNavigationModel implements
 			running = true;
 			while (running){
 				try {
+					System.out.println("In Greifer Schleife");
 					byte event = disFahrer2Greifer.readByte();
 					System.out.println("Befehl empfangen");
 //					Delay.msDelay(2000);
 					GreiferEvents gevent = GreiferEvents.values()[event];
+					System.out.println(gevent);
+					System.out.flush();
 				//	synchronized (this) {
 						switch (gevent) {
 						case FAHR_ZURUECK_5CM:
-							navigator.getMoveController().travel(-5,true);
-							warten();
-							dosFahrer2Greifer.writeByte(GreiferEvents.FAHRER_HINTEN_5CM
-									.ordinal());	
-							dosFahrer2Greifer.flush();
+							new Thread(new FahrZurueck5CM()).start();
 							break;
 						case FAHR_VOR_5CM:
-							navigator.getMoveController().travel(10,true);
-							warten();
-							dosFahrer2Greifer.writeByte(GreiferEvents.FAHRER_VORNE_5CM.ordinal());
-							dosFahrer2Greifer.flush();
+							new Thread(new FahrVor5CM()).start();
+							break;
 						
 						case FAHR_VOR:
-							navigator.getMoveController().travel(10,true);
-							warten();
-							dosFahrer2Greifer.writeByte(GreiferEvents.FAHRER_VORNE
-									.ordinal());
-							dosFahrer2Greifer.flush();
+							new Thread(new FahrVor()).start();
 							break;
 
 						case FAHR_ZURUECK:
-							navigator.getMoveController().travel(-10,true);
-							warten();
-							dosFahrer2Greifer.writeByte(GreiferEvents.FAHRER_HINTEN
-									.ordinal());
-							dosFahrer2Greifer.flush();
+							new Thread(new FahrZurueck()).start();
 							break;
 						
 						case STOP:
@@ -644,6 +652,71 @@ public class NXTHGNXTNavigationModel extends NXTHGNavigationModel implements
 			System.out.println("ReceiverGreifer stopped");
 		}
 
+		
+		class FahrZurueck5CM implements Runnable {
+			public void run() {
+
+				navigator.getMoveController().travel(-5,true);
+				warten();
+				try {
+					dosFahrer2Greifer.writeByte(GreiferEvents.FAHRER_HINTEN_5CM
+							.ordinal());
+					dosFahrer2Greifer.flush();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}	
+					
+
+			}
+		}
+		
+		class FahrVor5CM implements Runnable {
+			public void run() {
+
+				navigator.getMoveController().travel(10,true);
+				warten();
+				try {
+					dosFahrer2Greifer.writeByte(GreiferEvents.FAHRER_VORNE_5CM.ordinal());
+					dosFahrer2Greifer.flush();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}					
+
+			}
+		}
+		
+		class FahrVor implements Runnable {
+			public void run() {
+				navigator.getMoveController().travel(10,true);
+				warten();
+				try {
+					dosFahrer2Greifer.writeByte(GreiferEvents.FAHRER_VORNE
+							.ordinal());
+					dosFahrer2Greifer.flush();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}				
+			}
+		}
+		
+		class FahrZurueck implements Runnable {
+			public void run() {
+				navigator.getMoveController().travel(-10,true);
+				warten();
+				try {
+					dosFahrer2Greifer.writeByte(GreiferEvents.FAHRER_HINTEN
+							.ordinal());
+					dosFahrer2Greifer.flush();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}				
+			}
+		}
+		
 		private void warten() {
 			while (navigator.getMoveController().isMoving()){
 				Delay.msDelay(200);

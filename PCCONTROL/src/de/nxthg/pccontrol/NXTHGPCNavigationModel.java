@@ -665,8 +665,10 @@ public class NXTHGPCNavigationModel extends NXTHGNavigationModel {
 	public void seitwaerts(int value) {
 		if (!connected) return;
 		try {
-				dos.writeByte(NavEvent.SEITWAERTS.ordinal());			
+			    dos.writeByte(NavEvent.SEITWAERTS.ordinal());
+			    dos.writeInt(value);
 				dos.flush();	
+				System.out.println("Seitwärts: Gesendet");
 		} catch (IOException ioe) {
 			panel.error("IO Exception in seitwärts");
 		}		
