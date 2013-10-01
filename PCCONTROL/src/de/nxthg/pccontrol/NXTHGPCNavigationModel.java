@@ -666,22 +666,14 @@ public class NXTHGPCNavigationModel extends NXTHGNavigationModel {
 	public void Fahren() {
 		if (!connected) return;
 		try {
-				dos.writeByte(NavEvent.FAHREN.ordinal());			
-				dos.flush();	
+			dos.writeByte(NavEvent.TRAVEL.ordinal());
+			dos.writeFloat(50.0f);
+			dos.flush();	
 		} catch (IOException ioe) {
 			panel.error("IO Exception in Fahren");
 		}
 	}
 	
-	public void stopFahren() {
-		if (!connected) return;
-		try {
-				dos.writeByte(NavEvent.STOP_FAHREN.ordinal());			
-				dos.flush();	
-		} catch (IOException ioe) {
-			panel.error("IO Exception in stopFahren");
-		}
-	}
 	public void seitwaerts(int value) {
 		if (!connected) return;
 		try {

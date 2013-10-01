@@ -46,8 +46,6 @@ public class NXTHGMapCommand extends NXTHGNavigationPanel {
 	private JButton einziehButton = new JButton();
 	private JButton stopEinziehButton = new JButton();
 	private JButton FahrenButton = new JButton();
-	private JButton stopFahrenButton = new JButton();
-
 	/**
 	 * Create a MapTest object and display it in a GUI frame. Then connect to
 	 * the NXT.
@@ -244,9 +242,6 @@ public class NXTHGMapCommand extends NXTHGNavigationPanel {
 		}
 		if (e.getSource() == FahrenButton) {
 			model.Fahren();
-		}
-		if (e.getSource() == stopFahrenButton) {
-			model.stopFahren();
 		}
 
 	}
