@@ -45,6 +45,8 @@ public class NXTHGMapCommand extends NXTHGNavigationPanel {
 	private JButton abladenButton = new JButton();
 	private JButton einziehButton = new JButton();
 	private JButton stopEinziehButton = new JButton();
+	private JButton FahrenButton = new JButton();
+	private JButton stopFahrenButton = new JButton();
 
 	/**
 	 * Create a MapTest object and display it in a GUI frame. Then connect to
@@ -135,6 +137,16 @@ public class NXTHGMapCommand extends NXTHGNavigationPanel {
 		stopEinziehButton.addActionListener(this);
 		stopEinziehButton.setPreferredSize(new Dimension(300, 50));
 		leftPanel.add(stopEinziehButton);
+		
+		FahrenButton = new JButton("Fahren");
+		FahrenButton.addActionListener(this);
+		FahrenButton.setPreferredSize(new Dimension(300, 50));
+		leftPanel.add(FahrenButton);
+		
+		stopFahrenButton = new JButton("Stop Fahren");
+		stopFahrenButton.addActionListener(this);
+		stopFahrenButton.setPreferredSize(new Dimension(300, 50));
+		leftPanel.add(stopFahrenButton);
 
 		/*Drehen = new NXTHGSliderPanel_Drehen(model, NavEvent.DREHEN, "Drehen", "Set", 30);
 		Drehen.setPreferredSize(new Dimension(280, 80));
@@ -229,6 +241,12 @@ public class NXTHGMapCommand extends NXTHGNavigationPanel {
 		}
 		if (e.getSource() == stopEinziehButton) {
 			model.stopEinziehen();
+		}
+		if (e.getSource() == FahrenButton) {
+			model.Fahren();
+		}
+		if (e.getSource() == stopFahrenButton) {
+			model.stopFahren();
 		}
 
 	}
