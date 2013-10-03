@@ -141,10 +141,10 @@ public class NXTHGMapCommand extends NXTHGNavigationPanel {
 		FahrenButton.setPreferredSize(new Dimension(300, 50));
 		leftPanel.add(FahrenButton);
 		
-		stopFahrenButton = new JButton("Stop Fahren");
-		stopFahrenButton.addActionListener(this);
-		stopFahrenButton.setPreferredSize(new Dimension(300, 50));
-		leftPanel.add(stopFahrenButton);
+//		stopFahrenButton = new JButton("Stop Fahren");
+//		stopFahrenButton.addActionListener(this);
+//		stopFahrenButton.setPreferredSize(new Dimension(300, 50));
+//		leftPanel.add(stopFahrenButton);
 
 		/*Drehen = new NXTHGSliderPanel_Drehen(model, NavEvent.DREHEN, "Drehen", "Set", 30);
 		Drehen.setPreferredSize(new Dimension(280, 80));

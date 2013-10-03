@@ -53,6 +53,7 @@ public class NXTHGSliderPanel_Seitwärts extends JPanel implements ActionListener
 
 	public void actionPerformed(ActionEvent e) {
 		if (event == NavEvent.SEITWAERTS) {
+			System.out.println(slider.getValue());
 			model.seitwaerts(slider.getValue());
 		}
 	}
