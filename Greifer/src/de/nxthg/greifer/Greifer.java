@@ -20,7 +20,7 @@ import lejos.util.Delay;
 import lejos.util.TextMenu;
 
 public class Greifer {
-	static int ziehdrehungen = 2 * 360; // wie viele umdrehung um ein packet auf
+//	static int ziehdrehungen = 3000; // wie viele umdrehung um ein packet auf
 										// die kleine zwischenladefl‰che zu
 										// ziehen?????
 	static NXTRegulatedMotor MJustieren = Motor.C; // Antrieb der Ketten auf der
@@ -29,7 +29,7 @@ public class Greifer {
 													// linken Arm; forward ist
 													// rein/raus????
 	static NXTRegulatedMotor MArmRechts = Motor.B;
-	static int aussen = -21000;
+	static int aussen = -21000;	// wie viel um nach ganz aussen zu fahren	ERLEDIGT
 	static int greifenKlein = 20; // Wie viel um ein kleines Paket zu greifen
 									// auseinander????
 	static int greifenMittel = 50; // Wie viel um ein mittleres Paket zu
@@ -41,7 +41,7 @@ public class Greifer {
 	static int kisteBreite;
 	static int kisteTiefe;
 	static int kisteTiefeMittel = 30;
-	static int kisteTiefeGross = 50;
+	static int kisteTiefeGross = 800;
 	private static DataInputStream disGreifer2Fahrer;
 	private static DataOutputStream dosGreifer2Fahrer;
 	private static DataInputStream disGreifer2Lift;
@@ -103,8 +103,8 @@ public class Greifer {
 					// Delay.msDelay(4000);
 					byte event = disGreifer2Fahrer.readByte();
 					// Delay.msDelay(4000);
-					// System.out.println("warte auf gevent");
-					// System.out.flush();
+					System.out.println("warte auf gevent");
+					 System.out.flush();
 					GreiferEvents gevent = GreiferEvents.values()[event];
 					System.out.println(gevent);
 					System.out.flush();
@@ -153,6 +153,8 @@ public class Greifer {
 								.writeByte(GreiferEvents.AUF_CARGOAREA_FAHREN
 										.ordinal());
 						dosGreifer2Lift.flush();
+						System.out.println("AUF_CARGOAREA_FAHREN gesendet");
+						System.out.flush();
 						break;
 
 					case STOP:
@@ -287,11 +289,11 @@ public class Greifer {
 		class FahrerHinten5CM implements Runnable {
 			public void run() {
 
-				justieren(kisteBreite + 10);
+				justieren(kisteBreite - 1000);
 				try {
-					dosGreifer2Fahrer.writeByte(GreiferEvents.FAHR_VOR_5CM
+					dosGreifer2Lift.writeByte(GreiferEvents.ZUM_EINSAUGEN_RUNTER
 							.ordinal());
-					dosGreifer2Fahrer.flush();
+					dosGreifer2Lift.flush();
 				} catch (IOException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
@@ -307,7 +309,7 @@ public class Greifer {
 			public void run() {
 
 				justieren(kisteBreite);
-				reinArme(kisteTiefe, true);
+				reinArme(kisteTiefe, false);
 				
 				 try {
 					 dosGreifer2Fahrer.writeByte(GreiferEvents.FAHR_ZURUECK.ordinal());
@@ -351,7 +353,7 @@ public class Greifer {
 			System.out.println("Suche Lift");
 			NXTConnection conn = connector
 					.connect("Lift", NXTConnection.PACKET);
-			System.out.println("Verbindung hergestellt");
+			System.out.println("Verbindung zu Lift hergestellt");
 			unverbunden = false;
 			System.out.flush();
 			disGreifer2Lift = conn.openDataInputStream();
@@ -361,6 +363,8 @@ public class Greifer {
 			while (running) {
 				try {
 					System.out.println("In lift Schleife");
+					System.out.flush();
+					
 					byte event = disGreifer2Lift.readByte();
 					GreiferEvents gevent = GreiferEvents.values()[event];
 					System.out.println(gevent);
@@ -385,7 +389,10 @@ public class Greifer {
 							dosGreifer2Lift
 									.writeByte(GreiferEvents.CARGOAREA_REIN
 											.ordinal());
-							dosGreifer2Fahrer.flush();
+							dosGreifer2Lift.flush();
+							
+							System.out.println("Cargo rein gesendet");
+							System.out.flush();
 							// justieren(auﬂen);
 							break;
 
@@ -414,6 +421,11 @@ public class Greifer {
 							}
 							System.exit(0);
 							break;
+							
+						case AUF_EINSAUG_HOEHE:
+							new Thread(new AufEinsaugHoehe()).start();
+							break;
+							
 
 						default:
 							LCD.drawString("Unbekannter Befehl", 1, 1);
@@ -427,6 +439,25 @@ public class Greifer {
 			System.out.println("ReceiverLift stopped");
 		}
 
+	}
+	
+	class AufEinsaugHoehe implements Runnable {
+		public void run() {
+			try {
+				dosGreifer2Fahrer.writeByte(GreiferEvents.FAHR_VOR_5CM.ordinal());
+				dosGreifer2Fahrer.flush();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
+
+			
+			
+		
+			
+
+		}
 	}
 
 	public static void justieren(int b) {

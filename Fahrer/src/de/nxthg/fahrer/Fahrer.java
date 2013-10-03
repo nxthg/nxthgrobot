@@ -5,6 +5,7 @@ import java.io.IOException;
 import lejos.nxt.Button;
 import lejos.nxt.Motor;
 import lejos.nxt.SensorPort;
+import lejos.nxt.Sound;
 import lejos.nxt.UltrasonicSensor;
 import lejos.robotics.RegulatedMotor;
 import de.nxthg.fahrer.NXTHGNavigationModel.NavEvent;
@@ -52,6 +53,7 @@ public void run() throws Exception {
     	model = new NXTHGNXTNavigationModel();
     	System.out.println("model erzeugt");
     	System.out.flush();
+    	Sound.beep();
     //	Delay.msDelay(4000);
     	model.addListener(this);
     	model.setDebug(true);
@@ -70,19 +72,24 @@ public void run() throws Exception {
     	RegulatedMotor leftMotor = PilotProps.getMotor(pp.getProperty(PilotProps.KEY_LEFTMOTOR, "B"));
     	RegulatedMotor rightMotor = PilotProps.getMotor(pp.getProperty(PilotProps.KEY_RIGHTMOTOR, "C"));
     	boolean reverse = Boolean.parseBoolean(pp.getProperty(PilotProps.KEY_REVERSE,"false"));
-    	leftMotor.setAcceleration(5);
-    	rightMotor.setAcceleration(5);
+    	
     	System.out.println("Beschleunigung auf 5");
     	System.out.flush();
     	Delay.msDelay(2000);
     	robot = new DifferentialPilot(wheelDiameter,trackWidth,leftMotor,rightMotor,reverse);
     	navigator = new Navigator(robot);
     	
+    	
     	// UltrasonicSensor sonic = new UltrasonicSensor(SensorPort.S1);
     	// RangeFeatureDetector detector = new RangeFeatureDetector(sonic, MAX_DISTANCE, DETECTOR_DELAY);
 		
     	// Adding the navigator, adds the pilot and pose provider as well
     	model.addNavigator(navigator);
+    	
+    	
+    	robot.setTravelSpeed(100);
+    	leftMotor.setAcceleration(500);
+    	rightMotor.setAcceleration(500);
     	
     	// Add the feature detector and start it. 
     	// Give it a pose provider, so that it records the pose when a feature was detected
