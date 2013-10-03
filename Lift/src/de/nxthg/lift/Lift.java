@@ -5,7 +5,6 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 
 import de.nxthg.greifer.GreiferEvents;
-import lejos.nxt.Button;
 import lejos.nxt.LCD;
 import lejos.nxt.NXTRegulatedMotor;
 import lejos.nxt.Motor;
@@ -15,39 +14,46 @@ import lejos.nxt.comm.NXTConnection;
 import lejos.util.Delay;
 import lejos.nxt.SensorPort;
 import lejos.nxt.TouchSensor;
-import lejos.robotics.Touch;
 
 public class Lift {
 
-	static int hoehecargo = 500; // umdrehungen um auf cargo area höhe zu
+	static int hoehecargo = 3600; // umdrehungen um auf cargo area höhe zu		ERLEDIGT
 									// kommen??
-	static int cargodrehen = 200; // umdrehungen damint alle kisten nach hinten
+	static int cargodrehen = 446; // umdrehungen damint alle kisten nach hinten		ERLEDIGT
 									// gezogen werden
 	static int hoehekiste;
 	static int hoehekisteUnten = 0;
 	static int hoehekisteMitte = 50;
-	static int hoehekisteOben = 5350;
-	static int hoehefahren = 3 * 360;
+	static int hoehekisteOben =880;		//zum einsaugen der großen Kiste		ERLEDIGT
+	//static int hoehefahren = 3410;		//Auf höhe der Cargo Area		ERLEDIGT
 	static NXTRegulatedMotor MTurmLinks = Motor.A;
 	static NXTRegulatedMotor MTurmRechts = Motor.B;
 	static NXTRegulatedMotor MCargoArea = Motor.C;
 	private static DataInputStream disLift2Greifer;
 	private static DataOutputStream dosLift2Greifer;
 	static boolean running;
-	private static Lift model;
 	private Thread connectorLift;
 
 	public Lift() {
 		connectorLift = new Thread(new ConnectorLift());
 		connectorLift.start();
+		System.out.println("Thread gestartet");
+		System.out.flush();
+		Delay.msDelay(2000);
 	}
 
 	public static void main(String[] args) {
 		TouchSensor ts = new TouchSensor(SensorPort.S3);
 		LCD.drawInt(MTurmLinks.getTachoCount(), 0, 0);
-		model = new Lift();
+		new Lift();
 		System.out.println("Warte auf Button");
+		
+		Delay.msDelay(1000);
 
+		System.out.println("Vor endlos");
+		Delay.msDelay(1000);
+		
+		
 		while (true){
 			if (ts.isPressed()){
 				try {
@@ -139,16 +145,23 @@ public class Lift {
 	class ConnectorLift implements Runnable {
 		@SuppressWarnings("incomplete-switch")
 		public void run() {
+			System.out.println("In run, erzeuge connector");
+			System.out.flush();
 			NXTCommConnector connector = Bluetooth.getConnector();
 			System.out.println("Warte auf Greifer");
+			System.out.flush();
+			Delay.msDelay(2000);
 			NXTConnection conn = connector.waitForConnection(0,
 					NXTConnection.PACKET);
 			System.out.println("gefunden");
+			System.out.flush();
+			Delay.msDelay(2000);
 			disLift2Greifer = conn.openDataInputStream();
 			dosLift2Greifer = conn.openDataOutputStream();
 			running = true;
 			while (running) {
-				//System.out.println("While Schleife lauft");
+				System.out.println("While Schleife lauft");
+				System.out.flush();
 				try {
 					byte event = disLift2Greifer.readByte();
 					System.out.println(event); 
@@ -176,7 +189,8 @@ public class Lift {
 							break;
 
 						case AUF_KISTENHOEHE_FAHREN_OBEN:
-							hochziehen(hoehekisteOben);
+						//	hochziehen(hoehekisteOben-800);
+						//	hochziehen(hoehekisteOben);
 							dosLift2Greifer.writeByte(GreiferEvents.AUF_KISTENHOEHE
 									.ordinal());
 							dosLift2Greifer.flush();
@@ -185,6 +199,8 @@ public class Lift {
 							break;
 
 						case AUF_CARGOAREA_FAHREN:
+							System.out.println("AUF_CARGOAREA_FAHREN bekommen");
+							System.out.flush();
 							hochziehen(hoehecargo);
 							dosLift2Greifer.writeByte(GreiferEvents.AUF_CARGOAREA
 									.ordinal());
@@ -192,9 +208,12 @@ public class Lift {
 							break;
 							
 						case CARGOAREA_REIN:
+							System.out.println("Cargo rein erhalten ");
+							System.out.flush();
 							cargorein(cargodrehen);
 							//dos.writeByte(GreiferEvents.KISTE_IST_DRAUF.ordinal());
-							hochziehen(hoehefahren);
+							//hochziehen(hoehefahren);
+							break;
 							
 						case ABLADEN:
 							System.out.println("Befehl ABLADEN bekommen");
@@ -207,7 +226,11 @@ public class Lift {
 							cargorein(-20*cargodrehen);
 							break;
 							
-							
+						case ZUM_EINSAUGEN_RUNTER:
+							hochziehen(hoehekisteOben);
+							dosLift2Greifer.writeByte(GreiferEvents.AUF_EINSAUG_HOEHE.ordinal());
+							dosLift2Greifer.flush();
+							break;
 
 						}
 					}

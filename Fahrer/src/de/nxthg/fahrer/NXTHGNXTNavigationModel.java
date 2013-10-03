@@ -40,6 +40,12 @@ import lejos.robotics.navigation.Navigator;
  */
 public class NXTHGNXTNavigationModel extends NXTHGNavigationModel implements
 		MoveListener, NavigationListener, WaypointListener {
+	
+	private static final float CM1 = 2.5f;  //
+	private static final float CM2 = 4f;	//
+	private static final float CM3 = 6.2f;	//-
+	private static final float CM4 = 8.7f;	//
+	private static final float CM5 = 10.5f;	//
 	protected Navigator navigator; // Only one navigator is allowed
 	protected MoveController pilot; // Only one pilot is allowed
 	protected PoseProvider pp; // Only one pose provider is allowed
@@ -49,7 +55,7 @@ public class NXTHGNXTNavigationModel extends NXTHGNavigationModel implements
 	protected RangeScanner scanner; // Only one scanner is allowed
 	protected NXTHGNavEventListener listener;
 	static int versatz;
-	static final float[] versatzwinkel= {-200.0f, -175.0f,-150.0f, -125.0f, -100.0f,0.0f, 100.0f, 125.0f, 150.0f, 175.0f };
+	static final float[] versatzwinkel= {-CM5, -CM4,-CM3, -CM2, -CM1 ,0f, CM1, CM2, CM3, CM4, CM5 };
 	protected float clearance = 10;
 	protected float maxDistance = 40;
 	protected boolean autoSendPose = true;
@@ -59,7 +65,6 @@ public class NXTHGNXTNavigationModel extends NXTHGNavigationModel implements
 	private Thread connectorGreifer;
 	public DataInputStream disFahrer2Greifer;
 	public DataOutputStream dosFahrer2Greifer;
-	private DifferentialPilot robot;
 
 	/**
 	 * Create the model and start the receiver thread
@@ -73,11 +78,11 @@ public class NXTHGNXTNavigationModel extends NXTHGNavigationModel implements
 		connectorGreifer = new Thread(new ConnectorGreifer());
 		System.out.println("neuer Thread gemacht");
 		System.out.flush();
-//		Delay.msDelay(4000);
+		Delay.msDelay(4000);
 		connectorGreifer.start();
 		System.out.println("Greifer gestartet");
 		System.out.flush();
-//		Delay.msDelay(4000);
+		Delay.msDelay(4000);
 	}
 
 	/**
@@ -564,15 +569,16 @@ public class NXTHGNXTNavigationModel extends NXTHGNavigationModel implements
 							
 							
 						case SEITWAERTS:
-							versatz = disPC2Fahrer.readByte();
-							new Thread (new Seitwaerts()).start();
-							System.out.println("Seitwärts gelesen, thread gestartet");
+							System.out.println("Befehl Seitwärts Empfangen");
 							System.out.flush();
+							versatz = disPC2Fahrer.readInt();
+							new Thread (new Seitwaerts()).start();
 							break;
 							
 						case DREHEN:
 							int winkel = disPC2Fahrer.readInt();
-							robot.rotate(winkel, true);
+							RotateMoveController myC = (RotateMoveController) navigator.getMoveController();
+							myC.rotate(winkel, true );
 							break;
 
 						}
@@ -588,12 +594,26 @@ public class NXTHGNXTNavigationModel extends NXTHGNavigationModel implements
 	
 	class Seitwaerts implements Runnable {
 		public void run() {
+		
+			RotateMoveController myMC;
+			if (pilot != null
+					&& pilot instanceof RotateMoveController)
+				myMC = (RotateMoveController) pilot;
+			else 
+				return;
 			
-		robot.rotate(versatzwinkel[versatz+5]);
-		navigator.getMoveController().travel(-15);
-		robot.rotate(-2*versatzwinkel[versatz+5]);
-		navigator.getMoveController().travel(15);
-		robot.rotate(versatzwinkel[versatz+5]);
+		System.out.println("In Seitwärts Thread");
+		int arrayZugriffVersatz = versatz+5;
+		System.out.println("winkel: " + versatzwinkel[arrayZugriffVersatz]);
+		System.out.println("versatz: " + versatz + " cm");
+		System.out.flush();
+		myMC.travel(-5);
+		myMC.rotate(versatzwinkel[arrayZugriffVersatz]);
+		myMC.travel(-15);
+		myMC.rotate(-2*versatzwinkel[arrayZugriffVersatz]);
+		myMC.travel(15);
+		myMC.rotate(versatzwinkel[arrayZugriffVersatz]);
+		myMC.travel(5);
 		}
 	}
 
@@ -689,7 +709,7 @@ public class NXTHGNXTNavigationModel extends NXTHGNavigationModel implements
 		
 		class FahrVor implements Runnable {
 			public void run() {
-				navigator.getMoveController().travel(10,true);
+				navigator.getMoveController().travel(18,true);
 				warten();
 				try {
 					dosFahrer2Greifer.writeByte(GreiferEvents.FAHRER_VORNE
@@ -704,7 +724,7 @@ public class NXTHGNXTNavigationModel extends NXTHGNavigationModel implements
 		
 		class FahrZurueck implements Runnable {
 			public void run() {
-				navigator.getMoveController().travel(-10,true);
+				navigator.getMoveController().travel(-18,true);
 				warten();
 				try {
 					dosFahrer2Greifer.writeByte(GreiferEvents.FAHRER_HINTEN
