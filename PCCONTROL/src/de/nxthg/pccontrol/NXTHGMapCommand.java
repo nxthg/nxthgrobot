@@ -36,7 +36,7 @@ public class NXTHGMapCommand extends NXTHGNavigationPanel {
 	private static final String FRAME_TITLE = "NXJ Map Command";
 
 	private NXTHGSliderPanel setHeading, rotate, travelSpeed, rotateSpeed;
-	//private NXTHGSliderPanel_Drehen Drehen;
+	private NXTHGSliderPanel_Drehen Drehen;
 	private NXTHGSliderPanel_Seitwärts seitwärts;
 	private JPanel leftPanel = new JPanel();
 	private JPanel rightPanel = new JPanel();
@@ -146,9 +146,9 @@ public class NXTHGMapCommand extends NXTHGNavigationPanel {
 //		stopFahrenButton.setPreferredSize(new Dimension(300, 50));
 //		leftPanel.add(stopFahrenButton);
 
-		/*Drehen = new NXTHGSliderPanel_Drehen(model, NavEvent.DREHEN, "Drehen", "Set", 30);
+		Drehen = new NXTHGSliderPanel_Drehen(model, NavEvent.DREHEN, "Drehen", "Set", 30);
 		Drehen.setPreferredSize(new Dimension(280, 80));
-		commandPanel.add(Drehen);*/
+		commandPanel.add(Drehen);
 
 		seitwärts = new NXTHGSliderPanel_Seitwärts(model, NavEvent.SEITWAERTS, "zur Seite (cm):", "Set", 5);
 		seitwärts.setPreferredSize(new Dimension(280, 80));

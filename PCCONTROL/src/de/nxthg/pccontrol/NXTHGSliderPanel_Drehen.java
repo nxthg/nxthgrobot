@@ -53,7 +53,7 @@ public class NXTHGSliderPanel_Drehen extends JPanel implements ActionListener, C
 
 	public void actionPerformed(ActionEvent e) {
 		if (event == NavEvent.DREHEN) {
-			model.drehen(slider.getValue());
+			model.drehen(- slider.getValue());
 		}
 	}
 
