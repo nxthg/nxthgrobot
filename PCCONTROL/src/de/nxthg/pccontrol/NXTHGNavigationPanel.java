@@ -770,7 +770,7 @@ public abstract class NXTHGNavigationPanel extends JPanel implements NXTHGMapApp
 	 * Create the control panel, which controls the GUI
 	 */
 	protected void createControlPanel() {
-		controlPanel.setBorder(BorderFactory.createTitledBorder("Zoom"));
+		//controlPanel.setBorder(BorderFactory.createTitledBorder("Zoom"));
 		
 		zoomSlider = new JSlider(SwingConstants.HORIZONTAL,minZoom,maxZoom,minZoom);
 		zoomSlider.setValue(zoomInitialValue);
@@ -797,7 +797,7 @@ public abstract class NXTHGNavigationPanel extends JPanel implements NXTHGMapApp
 			}
 		});
 		
-		controlPanel.add(zoomSlider);		
+//		controlPanel.add(zoomSlider);		
 	}
 	
 	/**

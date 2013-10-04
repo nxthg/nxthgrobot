@@ -1,6 +1,7 @@
 package de.nxthg.pccontrol;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Point;
 import java.awt.SystemColor;
@@ -28,9 +29,9 @@ import lejos.pc.comm.SystemContext;
 public class NXTHGMapCommand extends NXTHGNavigationPanel {
 	private static final long serialVersionUID = 1L;
 
-	private static final int FRAME_WIDTH = 1010;
-	private static final int FRAME_HEIGHT = 1055;
-	private static final int INITIAL_ZOOM = 160;
+	private static final int FRAME_WIDTH = 1090;
+	private static final int FRAME_HEIGHT = 1160;
+	private static final int INITIAL_ZOOM = 180;
 	private static final Point INITIAL_MAP_ORIGIN = new Point(-10, -10);
 	private static final Dimension MAP_AREA_SIZE = new Dimension(800, 550);
 	private static final String FRAME_TITLE = "NXJ Map Command";
@@ -89,7 +90,7 @@ public class NXTHGMapCommand extends NXTHGNavigationPanel {
 		// Add the required panels, configure them, and set their sizes
 		rightPanel.setLayout(new BorderLayout());
 		rightPanel.add(eventPanel, BorderLayout.NORTH);
-		loadPanel.setPreferredSize(new Dimension(300, 70));
+		loadPanel.setPreferredSize(new Dimension(300, 80));
 		leftPanel.add(loadPanel);
 		connectPanel.setPreferredSize(new Dimension(300, 90));
 		leftPanel.add(connectPanel);
@@ -113,32 +114,33 @@ public class NXTHGMapCommand extends NXTHGNavigationPanel {
 
 		startNavigatorButton = new JButton("Start Navigator");
 		startNavigatorButton.addActionListener(this);
-		startNavigatorButton.setPreferredSize(new Dimension(300, 50));
+		startNavigatorButton.setPreferredSize(new Dimension(300, 40));
 		leftPanel.add(startNavigatorButton);
 
-		stopNavigatorButton = new JButton("STOP Navigator!");
+		stopNavigatorButton = new JButton("STOP Navigator!");	
 		stopNavigatorButton.addActionListener(this);
-		stopNavigatorButton.setPreferredSize(new Dimension(300, 50));
+		stopNavigatorButton.setPreferredSize(new Dimension(300, 60));
+		stopNavigatorButton.setBackground(new Color(255, 0, 0));
 		leftPanel.add(stopNavigatorButton);
 
 		abladenButton = new JButton("Abladen");
 		abladenButton.addActionListener(this);
-		abladenButton.setPreferredSize(new Dimension(300, 50));
+		abladenButton.setPreferredSize(new Dimension(300, 40));
 		leftPanel.add(abladenButton);
 
 		einziehButton = new JButton("Einziehen");
 		einziehButton.addActionListener(this);
-		einziehButton.setPreferredSize(new Dimension(300, 50));
+		einziehButton.setPreferredSize(new Dimension(300, 40));
 		leftPanel.add(einziehButton);
 		
 		stopEinziehButton = new JButton("Stop Einziehen");
 		stopEinziehButton.addActionListener(this);
-		stopEinziehButton.setPreferredSize(new Dimension(300, 50));
+		stopEinziehButton.setPreferredSize(new Dimension(300, 40));
 		leftPanel.add(stopEinziehButton);
 		
 		FahrenButton = new JButton("Fahren");
 		FahrenButton.addActionListener(this);
-		FahrenButton.setPreferredSize(new Dimension(300, 50));
+		FahrenButton.setPreferredSize(new Dimension(300, 40));
 		leftPanel.add(FahrenButton);
 		
 //		stopFahrenButton = new JButton("Stop Fahren");
@@ -154,12 +156,12 @@ public class NXTHGMapCommand extends NXTHGNavigationPanel {
 		seitwärts.setPreferredSize(new Dimension(280, 80));
 		commandPanel.add(seitwärts);
 
-		commandPanel.setPreferredSize(new Dimension(300, 460));
+		commandPanel.setPreferredSize(new Dimension(300, 540));
 		leftPanel.add(commandPanel);
 		rightPanel.add(mapPanel, BorderLayout.CENTER);
 		leftPanel.add(controlPanel);
 		rightPanel.add(statusPanel, BorderLayout.SOUTH);
-		leftPanel.setPreferredSize(new Dimension(320, 600));
+		leftPanel.setPreferredSize(new Dimension(320, 700));
 		add(leftPanel, BorderLayout.WEST);
 		add(rightPanel, BorderLayout.CENTER);
 		controlPanel.setPreferredSize(new Dimension(300, 80));

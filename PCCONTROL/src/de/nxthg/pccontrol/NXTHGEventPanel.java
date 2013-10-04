@@ -24,10 +24,11 @@ public class NXTHGEventPanel extends JPanel implements ActionListener {
 	protected JTextField param2 = new JTextField(8);
 	protected JTextField param3 = new JTextField(8);
 	protected NXTHGPCNavigationModel model;
-	protected NavEvent[] events = {/*NavEvent.ABLADEN_PAKET,*/ NavEvent.ADD_PATH, NavEvent.ADD_WAYPOINT, NavEvent.ARC, NavEvent.AUFLADEN_PAKET,
-			  NavEvent.CLEAR_PATH, NavEvent.EXIT, NavEvent.FOLLOW_PATH,NavEvent.GET_ESTIMATED_POSE, NavEvent.GET_PARTICLES, NavEvent.GET_POSE, 
-			  NavEvent.GET_READINGS, NavEvent.GOTO, NavEvent.LOCALIZE, NavEvent.RANDOM_MOVE, NavEvent.ROTATE, NavEvent.ROTATE_SPEED, NavEvent.ROTATE_TO, NavEvent.SET_POSE, NavEvent.SET_TARGET,
-			  NavEvent.START_NAVIGATOR, NavEvent.STOP, NavEvent.TAKE_READINGS, NavEvent.TRAVEL, NavEvent.TRAVEL_SPEED};
+	protected NavEvent[] events = {/*NavEvent.ABLADEN_PAKET,*/ NavEvent.ADD_PATH, NavEvent.ADD_WAYPOINT, /*NavEvent.ARC,*/ NavEvent.AUFLADEN_PAKET,
+			  NavEvent.CLEAR_PATH, NavEvent.EXIT, /*NavEvent.FOLLOW_PATH, NavEvent.GET_ESTIMATED_POSE, NavEvent.GET_PARTICLES,*/ NavEvent.GET_POSE, 
+			  /*NavEvent.GET_READINGS, */ NavEvent.GOTO, /*NavEvent.LOCALIZE, NavEvent.RANDOM_MOVE,*/ NavEvent.ROTATE, 
+			  NavEvent.ROTATE_SPEED, NavEvent.ROTATE_TO, NavEvent.SET_POSE, /*NavEvent.SET_TARGET,*/
+			  NavEvent.START_NAVIGATOR, NavEvent.STOP, /*NavEvent.TAKE_READINGS,*/ NavEvent.TRAVEL, NavEvent.TRAVEL_SPEED};
 	protected JComboBox eventCombo = new JComboBox(events);
 	protected NXTHGNavigationPanel panel;
 	
