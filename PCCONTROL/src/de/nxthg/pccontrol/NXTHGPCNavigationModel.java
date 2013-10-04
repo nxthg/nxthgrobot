@@ -632,6 +632,17 @@ public class NXTHGPCNavigationModel extends NXTHGNavigationModel {
 		}
 	}
 	
+	public void stopAll() {
+		if (!connected) return;
+		try {
+				dos.writeByte(NavEvent.KILLER.ordinal());
+				System.out.println("Gesendet");
+				dos.flush();	
+		} catch (IOException ioe) {
+			panel.error("IO Exception in stopAll");
+		}
+	}
+	
 	public void drehen(int winkel) {
 		if (!connected) return;
 		try {

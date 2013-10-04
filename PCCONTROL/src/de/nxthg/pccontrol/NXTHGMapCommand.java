@@ -41,13 +41,14 @@ public class NXTHGMapCommand extends NXTHGNavigationPanel {
 	private NXTHGSliderPanel_Seitwärts seitwärts;
 	private JPanel leftPanel = new JPanel();
 	private JPanel rightPanel = new JPanel();
-	private JButton stopNavigatorButton = new JButton();
+	private JButton stopNavigatorButton = new JButton();	
 	private JButton startNavigatorButton = new JButton();
+	private JButton stopAllButton = new JButton();
 	private JButton abladenButton = new JButton();
 	private JButton einziehButton = new JButton();
 	private JButton stopEinziehButton = new JButton();
 	private JButton FahrenButton = new JButton();
-	/**
+	/*
 	 * Create a MapTest object and display it in a GUI frame. Then connect to
 	 * the NXT.
 	 */
@@ -120,7 +121,7 @@ public class NXTHGMapCommand extends NXTHGNavigationPanel {
 		stopNavigatorButton = new JButton("STOP Navigator!");	
 		stopNavigatorButton.addActionListener(this);
 		stopNavigatorButton.setPreferredSize(new Dimension(300, 60));
-		stopNavigatorButton.setBackground(new Color(255, 0, 0));
+		stopNavigatorButton.setBackground(new Color(150, 150, 255));
 		leftPanel.add(stopNavigatorButton);
 
 		abladenButton = new JButton("Abladen");
@@ -143,6 +144,12 @@ public class NXTHGMapCommand extends NXTHGNavigationPanel {
 		FahrenButton.setPreferredSize(new Dimension(300, 40));
 		leftPanel.add(FahrenButton);
 		
+		stopAllButton = new JButton("!    K  I  L  L  E  R    !");	
+		stopAllButton.addActionListener(this);
+		stopAllButton.setPreferredSize(new Dimension(300, 80));								// KILLER !
+		stopAllButton.setBackground(new Color(255, 0, 0));
+		leftPanel.add(stopAllButton);
+				
 //		stopFahrenButton = new JButton("Stop Fahren");
 //		stopFahrenButton.addActionListener(this);
 //		stopFahrenButton.setPreferredSize(new Dimension(300, 50));
@@ -166,6 +173,7 @@ public class NXTHGMapCommand extends NXTHGNavigationPanel {
 		add(rightPanel, BorderLayout.CENTER);
 		controlPanel.setPreferredSize(new Dimension(300, 80));
 		zoomSlider.setValue(INITIAL_ZOOM);
+		
 	}
 
 	/**
@@ -232,6 +240,9 @@ public class NXTHGMapCommand extends NXTHGNavigationPanel {
 		}
 		if (e.getSource() == stopNavigatorButton) {
 			model.stop();
+		}
+		if (e.getSource() == stopAllButton) {
+			model.stopAll();
 		}
 		if (e.getSource() == abladenButton) {
 			model.paketab();
