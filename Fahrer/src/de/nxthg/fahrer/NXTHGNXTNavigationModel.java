@@ -40,12 +40,16 @@ import lejos.robotics.navigation.Navigator;
  */
 public class NXTHGNXTNavigationModel extends NXTHGNavigationModel implements
 		MoveListener, NavigationListener, WaypointListener {
-	
-	private static final float CM1 = 2.5f;  //
-	private static final float CM2 = 4f;	//
-	private static final float CM3 = 6.2f;	//-
-	private static final float CM4 = 8.7f;	//
-	private static final float CM5 = 10.5f;	//
+	static final float geschwindigkeitraus= 15f;
+	static final float geschwindigkeitdannach= 15f;
+	static final int vorPaket = 13;
+	static final int rausziehen = 5;		// zurück zum Paket aus dem Regal nehmen
+	static final int zurueck = -4;			// zurück zum Paket runterlassen
+	private static final float CM1 = 2.5f; //
+	private static final float CM2 = 4f; //
+	private static final float CM3 = 6.2f; // -
+	private static final float CM4 = 8.7f; //
+	private static final float CM5 = 10.5f; //
 	protected Navigator navigator; // Only one navigator is allowed
 	protected MoveController pilot; // Only one pilot is allowed
 	protected PoseProvider pp; // Only one pose provider is allowed
@@ -55,7 +59,8 @@ public class NXTHGNXTNavigationModel extends NXTHGNavigationModel implements
 	protected RangeScanner scanner; // Only one scanner is allowed
 	protected NXTHGNavEventListener listener;
 	static int versatz;
-	static final float[] versatzwinkel= {-CM5, -CM4,-CM3, -CM2, -CM1 ,0f, CM1, CM2, CM3, CM4, CM5 };
+	static final float[] versatzwinkel = { -CM5, -CM4, -CM3, -CM2, -CM1, 0f,
+			CM1, CM2, CM3, CM4, CM5 };
 	protected float clearance = 10;
 	protected float maxDistance = 40;
 	protected boolean autoSendPose = true;
@@ -63,6 +68,7 @@ public class NXTHGNXTNavigationModel extends NXTHGNavigationModel implements
 	private Thread receiver;
 	private boolean running = true;
 	private Thread connectorGreifer;
+	private Thread retter;
 	public DataInputStream disFahrer2Greifer;
 	public DataOutputStream dosFahrer2Greifer;
 
@@ -75,14 +81,14 @@ public class NXTHGNXTNavigationModel extends NXTHGNavigationModel implements
 		System.out.println("Erzeuge NXTHGNXTNavigationModel");
 		System.out.flush();
 		Delay.msDelay(1000);
-		connectorGreifer = new Thread(new ConnectorGreifer());
-		System.out.println("neuer Thread gemacht");
-		System.out.flush();
-		Delay.msDelay(4000);
-		connectorGreifer.start();
-		System.out.println("Greifer gestartet");
-		System.out.flush();
-		Delay.msDelay(4000);
+		 connectorGreifer = new Thread(new ConnectorGreifer());
+		 System.out.println("neuer Thread gemacht");
+		 System.out.flush();
+		 Delay.msDelay(4000);
+		 connectorGreifer.start();
+		 System.out.println("Greifer gestartet");
+		 System.out.flush();
+		 Delay.msDelay(4000);
 	}
 
 	/**
@@ -151,10 +157,10 @@ public class NXTHGNXTNavigationModel extends NXTHGNavigationModel implements
 	@SuppressWarnings("hiding")
 	public void addPoseProvider(PoseProvider pp) {
 		this.pp = pp;
-		/*if (pp instanceof MCLPoseProvider) {
-			mcl = (MCLPoseProvider) pp;
-			scanner = mcl.getScanner();
-		}*/
+		/*
+		 * if (pp instanceof MCLPoseProvider) { mcl = (MCLPoseProvider) pp;
+		 * scanner = mcl.getScanner(); }
+		 */
 	}
 
 	/**
@@ -258,8 +264,9 @@ public class NXTHGNXTNavigationModel extends NXTHGNavigationModel implements
 			while (running) {
 				try {
 					// Wait for any outstanding apply moves
-					/*if (mcl != null && mcl.isBusy())
-						Thread.yield();*/
+					/*
+					 * if (mcl != null && mcl.isBusy()) Thread.yield();
+					 */
 					System.out.println("in PC schleife");
 					byte event = disPC2Fahrer.readByte();
 					NavEvent navEvent = NavEvent.values()[event];
@@ -270,350 +277,378 @@ public class NXTHGNXTNavigationModel extends NXTHGNavigationModel implements
 					if (listener != null)
 						listener.eventReceived(navEvent);
 
-					synchronized (this) {
-						switch (navEvent) {
-						case LOAD_MAP: // Map sent from PC
-							if (map == null)
-								map = new LineMap();
-							map.loadObject(disPC2Fahrer);
-							/*if (mcl != null)
-								mcl.setMap(map);*/
-							break;
-						case GOTO: // Update of target and request to go to the
-									// new target
-							System.out.println(Motor.A.getAcceleration());
-							if (target == null)
-								target = new Waypoint(0, 0);
-							target.loadObject(disPC2Fahrer);
-							if (navigator != null)
-								navigator.goTo(target);
-							break;
-						case STOP: // Request to stop the robot
-							if (navigator != null)
-								navigator.stop();
-							if (pilot != null)
-								pilot.stop();
-							break;
-						case TRAVEL:
-							
-							float distance = disPC2Fahrer.readFloat();
-							if (pilot != null)
-								pilot.travel(distance);
-							break;
-						case ROTATE: // Request to rotate a given angle
-							float angle = disPC2Fahrer.readFloat();
-							if (pilot != null
-									&& pilot instanceof RotateMoveController)
-								((RotateMoveController) pilot).rotate(angle);
-							break;
-						case ARC: // Request to travel an arc og given radius
-									// and angle
-							float radius = disPC2Fahrer.readFloat();
-							angle = disPC2Fahrer.readFloat();
-							if (pilot != null
-									&& pilot instanceof ArcMoveController)
-								((ArcMoveController) pilot).arc(radius, angle);
-							break;
-						case ROTATE_TO: // Request to rotate to a given angle
-							angle = disPC2Fahrer.readFloat();
-							if (pp != null && pilot != null
-									&& pilot instanceof RotateMoveController)
-								((RotateMoveController) pilot)
-										.rotate(angleTo(angle));
-							break;
-						case GET_POSE: // Request to get the pose and return it
-										// to the PC
-							if (pp == null)
-								break;
-							// Suppress sending moves to PC while taking
-							// readings
-							boolean saveSendMoveStart = sendMoveStart;
-							boolean saveSendMoveStop = sendMoveStop;
-							sendMoveStart = false;
-							sendMoveStop = false;
-							currentPose = pp.getPose();
-							sendMoveStart = saveSendMoveStart;
-							sendMoveStop = saveSendMoveStop;
-							dosPC2Fahrer.writeByte(NavEvent.SET_POSE.ordinal());
-							currentPose.dumpObject(dosPC2Fahrer);
-							break;
-						case SET_POSE: // Request to set the current pose of the                                TUT DAS? ? ? ES MUSS FUNKTIONIEREN ! ! !
-										// robot
-							if (currentPose == null)
-								currentPose = new Pose(0, 0, 0);
-							currentPose.loadObject(disPC2Fahrer);
-							if (pp != null)
-								pp.setPose(currentPose);
-							break;
-						case ADD_WAYPOINT: // Request to add a waypoint
-							Waypoint wp = new Waypoint(0, 0);
-							wp.loadObject(disPC2Fahrer);
-							if (navigator != null)
-								navigator.addWaypoint(wp);
-							break;
-						case FIND_CLOSEST: // Request to find particle by
-											// co-ordinates and
-											// send its details to the PC
-							float x = disPC2Fahrer.readFloat();
-							float y = disPC2Fahrer.readFloat();
-							/*if (particles != null) {
-								dos.writeByte(NavEvent.CLOSEST_PARTICLE
-										.ordinal());
-								particles.dumpClosest(readings, dos, x, y);
-							}*/
-							break;
-						/*case PARTICLE_SET: // Particle set send from PC
-							if (particles == null)
-								particles = new MCLParticleSet(map, 0, 0);
-							particles.loadObject(dis);
-							mcl.setParticles(particles);
-							break;*/
-						case TAKE_READINGS: // Request to take range readings
-											// and send them to the PC
-							if (scanner != null) {
-								readings = scanner.getRangeValues();
-								dosPC2Fahrer.writeByte(NavEvent.RANGE_READINGS.ordinal());
-								dosFahrer2Greifer.flush();
-								readings.dumpObject(dosPC2Fahrer);
-							}
-							break;
-						/*case GET_READINGS: // Request to send current readings
-											// to the PC
-							dos.writeByte(NavEvent.RANGE_READINGS.ordinal());
-							if (mcl != null)
-								readings = mcl.getRangeReadings();
-							readings.dumpObject(dos);
-							break;*/
-						/*case GET_PARTICLES: // Request to send particles to the
-											// PC
-							if (particles == null)
-								break;
-							dos.writeByte(NavEvent.PARTICLE_SET.ordinal());
-							particles.dumpObject(dos);
-							break;
-						case GET_ESTIMATED_POSE: // Request to send estimated
-													// pose to the PC
-							if (mcl == null)
-								break;
-							dos.writeByte(NavEvent.ESTIMATED_POSE.ordinal());
-							mcl.dumpObject(dos);
-							break;*/
+					// synchronized (this) {
+					switch (navEvent) {
+					case LOAD_MAP: // Map sent from PC
+						if (map == null)
+							map = new LineMap();
+						map.loadObject(disPC2Fahrer);
 						/*
-						 * case FIND_PATH: // Find a path to the target if
-						 * (target == null) target = new Waypoint(0,0);
-						 * target.loadObject(dis); if (finder != null) {
-						 * dos.writeByte(NavEvent.PATH.ordinal()); try { path =
-						 * finder.findRoute(currentPose, target);
-						 * path.dumpObject(dos); } catch
-						 * (DestinationUnreachableException e) {
-						 * dos.writeInt(0); } } break;
+						 * if (mcl != null) mcl.setMap(map);
 						 */
-						case FOLLOW_PATH: // Follow a route sent from the PC
-							if (path == null)
-								path = new Path();
-							path.loadObject(disPC2Fahrer);
-							if (navigator != null)
-								navigator.followPath(path);
+						break;
+					case GOTO: // Update of target and request to go to the
+								// new target
+						System.out.println(Motor.A.getAcceleration());
+						if (target == null)
+							target = new Waypoint(0, 0);
+						target.loadObject(disPC2Fahrer);
+						if (navigator != null)
+							navigator.goTo(target);
+						break;
+					case STOP:
+						System.out.println("In STOP case");
+						System.out.flush();
+						if (navigator != null)
+							navigator.stop();
+						if (pilot != null)
+							pilot.stop();
+
+						break;
+					case TRAVEL:
+
+						float distance = disPC2Fahrer.readFloat();
+						if (pilot != null)
+							pilot.travel(distance);
+						break;
+					case ROTATE: // Request to rotate a given angle
+						float angle = disPC2Fahrer.readFloat();
+						if (pilot != null
+								&& pilot instanceof RotateMoveController)
+							((RotateMoveController) pilot).rotate(angle, true);
+						break;
+					case ARC: // Request to travel an arc og given radius
+								// and angle
+						float radius = disPC2Fahrer.readFloat();
+						angle = disPC2Fahrer.readFloat();
+						if (pilot != null && pilot instanceof ArcMoveController)
+							((ArcMoveController) pilot).arc(radius, angle);
+						break;
+					case ROTATE_TO: // Request to rotate to a given angle
+						new Thread(new RotateTo()).start();
+						break;
+
+					case GET_POSE: // Request to get the pose and return it
+									// to the PC
+						if (pp == null)
 							break;
-						case START_NAVIGATOR:
-//							System.out.println(Motor.A.getAcceleration());
-//							System.out.flush();
-//							Delay.msDelay(2000);
-							if (navigator != null)
-								navigator.followPath();
-							break;
-						case CLEAR_PATH: // Clear the current path in the
-											// navigator
-							if (navigator != null)
-								navigator.clearPath();
-							break;
-						case RANDOM_MOVE: // Request to make a random move
-							randomMove();
-							break;
-						/*case LOCALIZE:
-							localize();
-							break;*/
-						case EXIT:
-							System.exit(0);
-						/*case SOUND:
-							Sound.systemSound(false, dis.readInt());
-							break;*/
+						// Suppress sending moves to PC while taking
+						// readings
+						boolean saveSendMoveStart = sendMoveStart;
+						boolean saveSendMoveStop = sendMoveStop;
+						sendMoveStart = false;
+						sendMoveStop = false;
+						currentPose = pp.getPose();
+						sendMoveStart = saveSendMoveStart;
+						sendMoveStop = saveSendMoveStop;
+						dosPC2Fahrer.writeByte(NavEvent.SET_POSE.ordinal());
+						currentPose.dumpObject(dosPC2Fahrer);
+						break;
+					case SET_POSE: // Request to set the current pose of the TUT
+									// DAS? ? ? ES MUSS FUNKTIONIEREN ! ! !
+									// robot
+						if (currentPose == null)
+							currentPose = new Pose(0, 0, 0);
+						currentPose.loadObject(disPC2Fahrer);
+						if (pp != null)
+							pp.setPose(currentPose);
+						break;
+					case ADD_WAYPOINT: // Request to add a waypoint
+						Waypoint wp = new Waypoint(0, 0);
+						wp.loadObject(disPC2Fahrer);
+						if (navigator != null)
+							navigator.addWaypoint(wp);
+						break;
+					case FIND_CLOSEST: // Request to find particle by
+										// co-ordinates and
+										// send its details to the PC
+						float x = disPC2Fahrer.readFloat();
+						float y = disPC2Fahrer.readFloat();
+						/*
+						 * if (particles != null) {
+						 * dos.writeByte(NavEvent.CLOSEST_PARTICLE .ordinal());
+						 * particles.dumpClosest(readings, dos, x, y); }
+						 */
+						break;
+					/*
+					 * case PARTICLE_SET: // Particle set send from PC if
+					 * (particles == null) particles = new MCLParticleSet(map,
+					 * 0, 0); particles.loadObject(dis);
+					 * mcl.setParticles(particles); break;
+					 */
+					case TAKE_READINGS: // Request to take range readings
+										// and send them to the PC
+						if (scanner != null) {
+							readings = scanner.getRangeValues();
+							dosPC2Fahrer.writeByte(NavEvent.RANGE_READINGS
+									.ordinal());
+							dosFahrer2Greifer.flush();
+							readings.dumpObject(dosPC2Fahrer);
+						}
+						break;
+					/*
+					 * case GET_READINGS: // Request to send current readings //
+					 * to the PC
+					 * dos.writeByte(NavEvent.RANGE_READINGS.ordinal()); if (mcl
+					 * != null) readings = mcl.getRangeReadings();
+					 * readings.dumpObject(dos); break;
+					 */
+					/*
+					 * case GET_PARTICLES: // Request to send particles to the
+					 * // PC if (particles == null) break;
+					 * dos.writeByte(NavEvent.PARTICLE_SET.ordinal());
+					 * particles.dumpObject(dos); break; case
+					 * GET_ESTIMATED_POSE: // Request to send estimated // pose
+					 * to the PC if (mcl == null) break;
+					 * dos.writeByte(NavEvent.ESTIMATED_POSE.ordinal());
+					 * mcl.dumpObject(dos); break;
+					 */
+					/*
+					 * case FIND_PATH: // Find a path to the target if (target
+					 * == null) target = new Waypoint(0,0);
+					 * target.loadObject(dis); if (finder != null) {
+					 * dos.writeByte(NavEvent.PATH.ordinal()); try { path =
+					 * finder.findRoute(currentPose, target);
+					 * path.dumpObject(dos); } catch
+					 * (DestinationUnreachableException e) { dos.writeInt(0); }
+					 * } break;
+					 */
+					case FOLLOW_PATH: // Follow a route sent from the PC
+						if (path == null)
+							path = new Path();
+						path.loadObject(disPC2Fahrer);
+						if (navigator != null)
+							navigator.followPath(path);
+						break;
+					case START_NAVIGATOR:
+						// System.out.println(Motor.A.getAcceleration());
+						// System.out.flush();
+						// Delay.msDelay(2000);
+						if (navigator != null)
+							navigator.followPath();
+						break;
+					case CLEAR_PATH: // Clear the current path in the
+										// navigator
+						if (navigator != null)
+							navigator.clearPath();
+						break;
+					case RANDOM_MOVE: // Request to make a random move
+						randomMove();
+						break;
+					/*
+					 * case LOCALIZE: localize(); break;
+					 */
+					case EXIT:
+						System.exit(0);
+						/*
+						 * case SOUND: Sound.systemSound(false, dis.readInt());
+						 * break;
+						 */
 						/*
 						 * case GET_BATTERY:
 						 * dos.writeByte(NavEvent.BATTERY.ordinal());
 						 * dos.writeFloat(Battery.getVoltage()); dos.flush();
 						 * break;
 						 */
-						case PILOT_PARAMS:
-							float wheelDiameter = disPC2Fahrer.readFloat();
-							float trackWidth = disPC2Fahrer.readFloat();
-							int leftMotor = disPC2Fahrer.readInt();
-							int rightMotor = disPC2Fahrer.readInt();
-							boolean reverse = disPC2Fahrer.readBoolean();
-							PilotProps props = new PilotProps();
-							String[] motors = { "A", "B", "C" };
-							props.setProperty(PilotProps.KEY_WHEELDIAMETER, ""
-									+ wheelDiameter);
-							props.setProperty(PilotProps.KEY_TRACKWIDTH, ""
-									+ trackWidth);
-							props.setProperty(PilotProps.KEY_LEFTMOTOR,
-									motors[leftMotor]);
-							props.setProperty(PilotProps.KEY_RIGHTMOTOR,
-									motors[rightMotor]);
-							props.setProperty(PilotProps.KEY_REVERSE, ""
-									+ reverse);
-							props.storePersistentValues();
-							break;
-						/*
-						 * case RANGE_FEATURE_DETECTOR_PARAMS: int delay =
-						 * dis.readInt(); float maxDist = dis.readFloat(); for
-						 * (FeatureDetector detector : detectors) { if (detector
-						 * instanceof RangeFeatureDetector) {
-						 * ((RangeFeatureDetector) detector).setDelay(delay);
-						 * ((RangeFeatureDetector)
-						 * detector).setMaxDistance(maxDist); } } break;
-						 */
-						case RANGE_SCANNER_PARAMS:
-							int gearRatio = disPC2Fahrer.readInt();
-							int headMotor = disPC2Fahrer.readInt();
-							RegulatedMotor[] regulatedMotors = { Motor.A,
-									Motor.B, Motor.C };
-							if (scanner instanceof RotatingRangeScanner) {
-								((RotatingRangeScanner) scanner)
-										.setGearRatio(gearRatio);
-								((RotatingRangeScanner) scanner)
-										.setHeadMotor(regulatedMotors[headMotor]);
-							}
-							break;
-						case TRAVEL_SPEED:
-							float travelSpeed = disPC2Fahrer.readFloat();
-							if (pilot != null)
-								pilot.setTravelSpeed(travelSpeed);
-							break;
-						case ROTATE_SPEED:
-							float rotateSpeed = disPC2Fahrer.readFloat();
-							if (pilot != null
-									&& pilot instanceof RotateMoveController) {
-								((RotateMoveController) pilot)
-										.setRotateSpeed(rotateSpeed);
-							}
-							break;
-
-						case RANDOM_MOVE_PARAMS:
-							maxDistance = disPC2Fahrer.readFloat();
-							clearance = disPC2Fahrer.readFloat();
-							break;
-
-						case AUFLADEN_PAKET:
-							int groesse = disPC2Fahrer.readInt();
-							int regal = disPC2Fahrer.readInt();
-							if (groesse == 1) {
-								if (regal == 1) {
-									dosFahrer2Greifer.writeByte(GreiferEvents.KISTE_KLEIN_UNTEN
-													.ordinal());
-									dosFahrer2Greifer.flush();
-									System.out.print("1 1 An Greifer gesendet");
-								}
-							}
-
-							if (groesse == 2) {
-								if (regal == 1) {
-									dosFahrer2Greifer.writeByte(GreiferEvents.KISTE_MITTEL_UNTEN
-													.ordinal());
-									dosFahrer2Greifer.flush();
-									System.out.print("2 1 An Greifer gesendet");
-								}
-							}
-
-							if (groesse == 2) {
-								if (regal == 2) {
-									dosFahrer2Greifer.writeByte(GreiferEvents.KISTE_MITTEL_MITTE
-											.ordinal());
-							dosFahrer2Greifer.flush();
-							System.out.print("2 2 An Greifer gesendet");
-
-								}
-							}
-
-							if (groesse == 3) {
-								if (regal == 3) {
-									dosFahrer2Greifer.writeByte(GreiferEvents.KISTE_GROSS_OBEN
-													.ordinal());
-									dosFahrer2Greifer.flush();
-									System.out.print("3 3 An Greifer gesendet");
-								}
-							}
-
-							break;
-
-							
-						case EINZIEHEN:
-							dosFahrer2Greifer.writeByte(GreiferEvents.EINZIEHEN.ordinal());
-							dosFahrer2Greifer.flush();
-//							Delay.msDelay(4000);
-							System.out.println("Einziehen an Greifer weitergesendet");
-							break;
-							
-						case STOP_EINZIEHEN:
-							dosFahrer2Greifer.writeByte(GreiferEvents.STOP_EINZIEHEN.ordinal());
-							break;
-							
-						case ABLADEN_PAKET:
-							System.out.println("  Befehl ABLADEN_PAKET bekommen ");
-//							Delay.msDelay(4000);
-							dosFahrer2Greifer.writeByte(GreiferEvents.ABLADEN.ordinal());
-							dosFahrer2Greifer.flush();
-//							Delay.msDelay(4000);
-							System.out.println(" Befehl ABLADEN_PAKET an greifer gesendet");
-							break;
-							
-							
-						case SEITWAERTS:
-							System.out.println("Befehl Seitwärts Empfangen");
-							System.out.flush();
-							versatz = disPC2Fahrer.readInt();
-							new Thread (new Seitwaerts()).start();
-							break;
-							
-						case DREHEN:
-							int winkel = disPC2Fahrer.readInt();
-							RotateMoveController myC = (RotateMoveController) navigator.getMoveController();
-							myC.rotate(winkel, true );
-							break;
-
+					case PILOT_PARAMS:
+						float wheelDiameter = disPC2Fahrer.readFloat();
+						float trackWidth = disPC2Fahrer.readFloat();
+						int leftMotor = disPC2Fahrer.readInt();
+						int rightMotor = disPC2Fahrer.readInt();
+						boolean reverse = disPC2Fahrer.readBoolean();
+						PilotProps props = new PilotProps();
+						String[] motors = { "A", "B", "C" };
+						props.setProperty(PilotProps.KEY_WHEELDIAMETER, ""
+								+ wheelDiameter);
+						props.setProperty(PilotProps.KEY_TRACKWIDTH, ""
+								+ trackWidth);
+						props.setProperty(PilotProps.KEY_LEFTMOTOR,
+								motors[leftMotor]);
+						props.setProperty(PilotProps.KEY_RIGHTMOTOR,
+								motors[rightMotor]);
+						props.setProperty(PilotProps.KEY_REVERSE, "" + reverse);
+						props.storePersistentValues();
+						break;
+					/*
+					 * case RANGE_FEATURE_DETECTOR_PARAMS: int delay =
+					 * dis.readInt(); float maxDist = dis.readFloat(); for
+					 * (FeatureDetector detector : detectors) { if (detector
+					 * instanceof RangeFeatureDetector) {
+					 * ((RangeFeatureDetector) detector).setDelay(delay);
+					 * ((RangeFeatureDetector)
+					 * detector).setMaxDistance(maxDist); } } break;
+					 */
+					case RANGE_SCANNER_PARAMS:
+						int gearRatio = disPC2Fahrer.readInt();
+						int headMotor = disPC2Fahrer.readInt();
+						RegulatedMotor[] regulatedMotors = { Motor.A, Motor.B,
+								Motor.C };
+						if (scanner instanceof RotatingRangeScanner) {
+							((RotatingRangeScanner) scanner)
+									.setGearRatio(gearRatio);
+							((RotatingRangeScanner) scanner)
+									.setHeadMotor(regulatedMotors[headMotor]);
 						}
+						break;
+					case TRAVEL_SPEED:
+						float travelSpeed = disPC2Fahrer.readFloat();
+						if (pilot != null)
+							pilot.setTravelSpeed(travelSpeed);
+						break;
+					case ROTATE_SPEED:
+						float rotateSpeed = disPC2Fahrer.readFloat();
+						if (pilot != null
+								&& pilot instanceof RotateMoveController) {
+							((RotateMoveController) pilot)
+									.setRotateSpeed(rotateSpeed);
+						}
+						break;
+
+					case RANDOM_MOVE_PARAMS:
+						maxDistance = disPC2Fahrer.readFloat();
+						clearance = disPC2Fahrer.readFloat();
+						break;
+
+					case AUFLADEN_PAKET:
+						int groesse = disPC2Fahrer.readInt();
+						int regal = disPC2Fahrer.readInt();
+						if (groesse == 1) {
+							if (regal == 1) {
+								dosFahrer2Greifer
+										.writeByte(GreiferEvents.KISTE_KLEIN_UNTEN
+												.ordinal());
+								dosFahrer2Greifer.flush();
+								System.out.print("1 1 An Greifer gesendet");
+							}
+						}
+
+						if (groesse == 2) {
+							if (regal == 1) {
+								dosFahrer2Greifer
+										.writeByte(GreiferEvents.KISTE_MITTEL_UNTEN
+												.ordinal());
+								dosFahrer2Greifer.flush();
+								System.out.print("2 1 An Greifer gesendet");
+							}
+						}
+
+						if (groesse == 2) {
+							if (regal == 2) {
+								dosFahrer2Greifer
+										.writeByte(GreiferEvents.KISTE_MITTEL_MITTE
+												.ordinal());
+								dosFahrer2Greifer.flush();
+								System.out.print("2 2 An Greifer gesendet");
+
+							}
+						}
+
+						if (groesse == 3) {
+							if (regal == 3) {
+								dosFahrer2Greifer
+										.writeByte(GreiferEvents.KISTE_GROSS_OBEN
+												.ordinal());
+								dosFahrer2Greifer.flush();
+								System.out.print("3 3 An Greifer gesendet");
+							}
+						}
+
+						break;
+
+					case EINZIEHEN:
+						dosFahrer2Greifer.writeByte(GreiferEvents.EINZIEHEN
+								.ordinal());
+						dosFahrer2Greifer.flush();
+						// Delay.msDelay(4000);
+						System.out
+								.println("Einziehen an Greifer weitergesendet");
+						break;
+
+					case STOP_EINZIEHEN:
+						dosFahrer2Greifer
+								.writeByte(GreiferEvents.STOP_EINZIEHEN
+										.ordinal());
+						break;
+
+					case ABLADEN_PAKET:
+						System.out.println("  Befehl ABLADEN_PAKET bekommen ");
+						// Delay.msDelay(4000);
+						dosFahrer2Greifer.writeByte(GreiferEvents.ABLADEN
+								.ordinal());
+						dosFahrer2Greifer.flush();
+						// Delay.msDelay(4000);
+						System.out
+								.println(" Befehl ABLADEN_PAKET an greifer gesendet");
+						break;
+
+					case SEITWAERTS:
+						System.out.println("Befehl Seitwärts Empfangen");
+						System.out.flush();
+						versatz = disPC2Fahrer.readInt();
+						new Thread(new Seitwaerts()).start();
+						break;
+					
+					case KILLER:
+						dosFahrer2Greifer.writeByte(GreiferEvents.STOP.ordinal());
+						dosFahrer2Greifer.flush();
+						float killer = versatzwinkel[12];
+						//System.out.println(killer);
+						break;
+						
+					case DREHEN:
+						int winkel = disPC2Fahrer.readInt();
+						RotateMoveController myC = (RotateMoveController) navigator
+								.getMoveController();
+						myC.rotate(-winkel, true);
+						break;
+
 					}
+					// }
 				} catch (IOException ioe) {
 					fatal("IOException in receiver:");
 				}
 			}
 		}
 	}
-	
-	
-	
+
+	class RotateTo implements Runnable {
+		public void run() {
+
+			float angle;
+			try {
+				angle = disPC2Fahrer.readFloat();
+				if (pp != null && pilot != null
+						&& pilot instanceof RotateMoveController)
+					((RotateMoveController) pilot).rotate(angleTo(angle), true);
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+
+		}
+	}
+
 	class Seitwaerts implements Runnable {
 		public void run() {
-		
+
 			RotateMoveController myMC;
-			if (pilot != null
-					&& pilot instanceof RotateMoveController)
+			if (pilot != null && pilot instanceof RotateMoveController)
 				myMC = (RotateMoveController) pilot;
-			else 
+			else
 				return;
-			
-		System.out.println("In Seitwärts Thread");
-		int arrayZugriffVersatz = versatz+5;
-		System.out.println("winkel: " + versatzwinkel[arrayZugriffVersatz]);
-		System.out.println("versatz: " + versatz + " cm");
-		System.out.flush();
-		myMC.travel(-5);
-		myMC.rotate(versatzwinkel[arrayZugriffVersatz]);
-		myMC.travel(-15);
-		myMC.rotate(-2*versatzwinkel[arrayZugriffVersatz]);
-		myMC.travel(15);
-		myMC.rotate(versatzwinkel[arrayZugriffVersatz]);
-		myMC.travel(5);
+
+			System.out.println("In Seitwärts Thread");
+			int arrayZugriffVersatz = versatz + 5;
+			System.out.println("winkel: " + versatzwinkel[arrayZugriffVersatz]);
+			System.out.println("versatz: " + versatz + " cm");
+			System.out.flush();
+			myMC.travel(-5);
+			myMC.rotate(versatzwinkel[arrayZugriffVersatz]);
+			myMC.travel(-15);
+			myMC.rotate(-2 * versatzwinkel[arrayZugriffVersatz]);
+			myMC.travel(15);
+			myMC.rotate(versatzwinkel[arrayZugriffVersatz]);
+			myMC.travel(5);
 		}
 	}
 
@@ -630,36 +665,41 @@ public class NXTHGNXTNavigationModel extends NXTHGNavigationModel implements
 			disFahrer2Greifer = con.openDataInputStream();
 			dosFahrer2Greifer = con.openDataOutputStream();
 			running = true;
-			while (running){
+			while (running) {
 				try {
 					System.out.println("In Greifer Schleife");
 					byte event = disFahrer2Greifer.readByte();
 					System.out.println("Befehl empfangen");
-//					Delay.msDelay(2000);
+					// Delay.msDelay(2000);
 					GreiferEvents gevent = GreiferEvents.values()[event];
 					System.out.println(gevent);
 					System.out.flush();
-				//	synchronized (this) {
-						switch (gevent) {
-						case FAHR_ZURUECK_5CM:
-							new Thread(new FahrZurueck5CM()).start();
-							break;
-						case FAHR_VOR_5CM:
-							new Thread(new FahrVor5CM()).start();
-							break;
-						
-						case FAHR_VOR:
-							new Thread(new FahrVor()).start();
-							break;
+					// synchronized (this) {
+					switch (gevent) {
+					case FAHR_ZURUECK_5CM:
+						new Thread(new FahrZurueck5CM()).start();
+						dosFahrer2Greifer
+								.writeByte(GreiferEvents.FAHRER_HINTEN_5CM
+										.ordinal());
+						dosFahrer2Greifer.flush();
 
-						case FAHR_ZURUECK:
-							new Thread(new FahrZurueck()).start();
-							break;
-						
-						case STOP:
-							System.exit(0);
-							break;
-						//}
+						break;
+					case FAHR_VOR_5CM:
+						new Thread(new FahrVor5CM()).start();
+						break;
+
+					case FAHR_VOR:
+						new Thread(new FahrVor()).start();
+						break;
+
+					case FAHR_ZURUECK:
+						new Thread(new FahrZurueck()).start();
+						break;
+
+					case KILLER:
+						float otto= versatzwinkel[12];
+						break;
+					// }
 					}
 				} catch (IOException ioe) {
 					fatal("IOException in receiver:");
@@ -672,44 +712,34 @@ public class NXTHGNXTNavigationModel extends NXTHGNavigationModel implements
 			System.out.println("ReceiverGreifer stopped");
 		}
 
-		
 		class FahrZurueck5CM implements Runnable {
 			public void run() {
+				navigator.getMoveController().setTravelSpeed(geschwindigkeitraus);;
+				navigator.getMoveController().travel(-rausziehen, true);
 
-				navigator.getMoveController().travel(-5,true);
+			}
+		}
+
+		class FahrVor5CM implements Runnable {
+			public void run() {
+				navigator.getMoveController().setTravelSpeed(geschwindigkeitraus);
+				navigator.getMoveController().travel(rausziehen, true);
 				warten();
 				try {
-					dosFahrer2Greifer.writeByte(GreiferEvents.FAHRER_HINTEN_5CM
+					dosFahrer2Greifer.writeByte(GreiferEvents.FAHRER_VORNE_5CM
 							.ordinal());
 					dosFahrer2Greifer.flush();
 				} catch (IOException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
-				}	
-					
+				}
 
 			}
 		}
-		
-		class FahrVor5CM implements Runnable {
-			public void run() {
 
-				navigator.getMoveController().travel(10,true);
-				warten();
-				try {
-					dosFahrer2Greifer.writeByte(GreiferEvents.FAHRER_VORNE_5CM.ordinal());
-					dosFahrer2Greifer.flush();
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}					
-
-			}
-		}
-		
 		class FahrVor implements Runnable {
 			public void run() {
-				navigator.getMoveController().travel(18,true);
+				navigator.getMoveController().travel(vorPaket, true);
 				warten();
 				try {
 					dosFahrer2Greifer.writeByte(GreiferEvents.FAHRER_VORNE
@@ -718,13 +748,13 @@ public class NXTHGNXTNavigationModel extends NXTHGNavigationModel implements
 				} catch (IOException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
-				}				
+				}
 			}
 		}
-		
+
 		class FahrZurueck implements Runnable {
 			public void run() {
-				navigator.getMoveController().travel(-18,true);
+				navigator.getMoveController().travel(zurueck, true);
 				warten();
 				try {
 					dosFahrer2Greifer.writeByte(GreiferEvents.FAHRER_HINTEN
@@ -733,12 +763,12 @@ public class NXTHGNXTNavigationModel extends NXTHGNavigationModel implements
 				} catch (IOException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
-				}				
+				}
 			}
 		}
-		
+
 		private void warten() {
-			while (navigator.getMoveController().isMoving()){
+			while (navigator.getMoveController().isMoving()) {
 				Delay.msDelay(200);
 			}
 		}
@@ -773,46 +803,28 @@ public class NXTHGNXTNavigationModel extends NXTHGNavigationModel implements
 		}
 	}
 
-	/*private void localize() {
-		boolean saveSendMoveStart = sendMoveStart;
-		boolean saveSendMoveStop = sendMoveStop;
-		sendMoveStart = false;
-		sendMoveStop = false;
-		while (true) {
-			try {
-				mcl.getPose();
-				dos.writeByte(NavEvent.PARTICLE_SET.ordinal());
-				particles.dumpObject(dos);
-				readings = mcl.getReadings();
-				dos.writeByte(NavEvent.RANGE_READINGS.ordinal());
-				readings.dumpObject(dos);
-				if (goodEstimate()) {
-					// Send the estimate to the PC
-					dos.writeByte(NavEvent.ESTIMATED_POSE.ordinal());
-					mcl.dumpObject(dos);
-					dos.writeByte(NavEvent.LOCATED.ordinal());
-					dos.flush();
-					break;
-				}
-				randomMove();
-				dos.writeByte(NavEvent.PARTICLE_SET.ordinal());
-				particles.dumpObject(dos);
-			} catch (IOException ioe) {
-				fatal("IOException in localize");
-			}
-		}
-		sendMoveStart = saveSendMoveStart;
-		sendMoveStop = saveSendMoveStop;
-	}*/
+	/*
+	 * private void localize() { boolean saveSendMoveStart = sendMoveStart;
+	 * boolean saveSendMoveStop = sendMoveStop; sendMoveStart = false;
+	 * sendMoveStop = false; while (true) { try { mcl.getPose();
+	 * dos.writeByte(NavEvent.PARTICLE_SET.ordinal());
+	 * particles.dumpObject(dos); readings = mcl.getReadings();
+	 * dos.writeByte(NavEvent.RANGE_READINGS.ordinal());
+	 * readings.dumpObject(dos); if (goodEstimate()) { // Send the estimate to
+	 * the PC dos.writeByte(NavEvent.ESTIMATED_POSE.ordinal());
+	 * mcl.dumpObject(dos); dos.writeByte(NavEvent.LOCATED.ordinal());
+	 * dos.flush(); break; } randomMove();
+	 * dos.writeByte(NavEvent.PARTICLE_SET.ordinal());
+	 * particles.dumpObject(dos); } catch (IOException ioe) {
+	 * fatal("IOException in localize"); } } sendMoveStart = saveSendMoveStart;
+	 * sendMoveStop = saveSendMoveStop; }
+	 */
 
-	/*private boolean goodEstimate() {
-		// float sx = mcl.getSigmaX();
-		// float sy = mcl.getSigmaY();
-		float xr = mcl.getXRange();
-		float yr = mcl.getYRange();
-		return xr < 50 && yr < 50;
-	}
-*/
+	/*
+	 * private boolean goodEstimate() { // float sx = mcl.getSigmaX(); // float
+	 * sy = mcl.getSigmaY(); float xr = mcl.getXRange(); float yr =
+	 * mcl.getYRange(); return xr < 50 && yr < 50; }
+	 */
 	// Calculate the angle for ROTATE_TO
 	private int angleTo(float angle) {
 		int angleTo = ((int) (angle - pp.getPose().getHeading())) % 360;
@@ -828,8 +840,8 @@ public class NXTHGNXTNavigationModel extends NXTHGNavigationModel implements
 		try {
 			synchronized (receiver) {
 				if (debug)
-				//	log("Sending move started");
-				dosPC2Fahrer.writeByte(NavEvent.MOVE_STARTED.ordinal());
+					// log("Sending move started");
+					dosPC2Fahrer.writeByte(NavEvent.MOVE_STARTED.ordinal());
 				event.dumpObject(dosPC2Fahrer);
 			}
 		} catch (IOException ioe) {
@@ -846,13 +858,13 @@ public class NXTHGNXTNavigationModel extends NXTHGNavigationModel implements
 		try {
 			synchronized (receiver) {
 				if (debug)
-					//log("Sending move stopped");
-				dosPC2Fahrer.writeByte(NavEvent.MOVE_STOPPED.ordinal());
+					// log("Sending move stopped");
+					dosPC2Fahrer.writeByte(NavEvent.MOVE_STOPPED.ordinal());
 				event.dumpObject(dosPC2Fahrer);
 				if (pp != null && autoSendPose) {
 					if (debug)
-						//log("Sending set pose");
-					dosPC2Fahrer.writeByte(NavEvent.SET_POSE.ordinal());
+						// log("Sending set pose");
+						dosPC2Fahrer.writeByte(NavEvent.SET_POSE.ordinal());
 					pp.getPose().dumpObject(dosPC2Fahrer);
 				}
 			}

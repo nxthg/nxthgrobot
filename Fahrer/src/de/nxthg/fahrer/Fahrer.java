@@ -87,9 +87,9 @@ public void run() throws Exception {
     	model.addNavigator(navigator);
     	
     	
-    	robot.setTravelSpeed(100);
-    	leftMotor.setAcceleration(500);
-    	rightMotor.setAcceleration(500);
+   	robot.setTravelSpeed(100);
+   	leftMotor.setAcceleration(500);
+ 	rightMotor.setAcceleration(500);
     	
     	// Add the feature detector and start it. 
     	// Give it a pose provider, so that it records the pose when a feature was detected

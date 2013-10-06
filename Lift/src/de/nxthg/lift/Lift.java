@@ -17,15 +17,15 @@ import lejos.nxt.TouchSensor;
 
 public class Lift {
 
-	static int hoehecargo = 3600; // umdrehungen um auf cargo area höhe zu		ERLEDIGT
-									// kommen??
-	static int cargodrehen = 446; // umdrehungen damint alle kisten nach hinten		ERLEDIGT
-									// gezogen werden
+	static int hoehecargodrauf = 3650;	// umdrehungen um auf cargo area höhe zu		ERLEDIGT
+	static int hoehecargorunter = 5000;								// kommen??
+	static int cargodrehen = 550; // umdrehungen damint alle kisten nach hinten		ERLEDIGT
+	final static int geschw= Motor.A.getSpeed();								// gezogen werden
 	static int hoehekiste;
 	static int hoehekisteUnten = 0;
 	static int hoehekisteMitte = 50;
-	static int hoehekisteOben =880;		//zum einsaugen der großen Kiste		ERLEDIGT
-	//static int hoehefahren = 3410;		//Auf höhe der Cargo Area		ERLEDIGT
+	static int hoehekisteOben =1050;		//zum einsaugen der großen Kiste		ERLEDIGT
+	static int hoehefahren = 3110;		//Auf höhe der Cargo Area		ERLEDIGT
 	static NXTRegulatedMotor MTurmLinks = Motor.A;
 	static NXTRegulatedMotor MTurmRechts = Motor.B;
 	static NXTRegulatedMotor MCargoArea = Motor.C;
@@ -141,6 +141,17 @@ public class Lift {
 		Delay.msDelay(5000);
 		System.exit(1);
 	}
+	
+	class Tachocountzahler implements Runnable {
+		public void run() {
+			while (true){
+			
+			System.out.println(Motor.A.getTachoCount());
+			}
+			
+
+		}
+	}
 
 	class ConnectorLift implements Runnable {
 		@SuppressWarnings("incomplete-switch")
@@ -171,7 +182,7 @@ public class Lift {
 						switch (gevent) {
 						case STOP:
 							System.out.print("Befehl empfangen");
-							Delay.msDelay(2000);
+							System.exit(0);
 							break;
 						case AUF_KISTENHOEHE_FAHREN_UNTEN:
 							hochziehen(hoehekisteUnten);
@@ -189,7 +200,7 @@ public class Lift {
 							break;
 
 						case AUF_KISTENHOEHE_FAHREN_OBEN:
-						//	hochziehen(hoehekisteOben-800);
+							hochziehen(0);
 						//	hochziehen(hoehekisteOben);
 							dosLift2Greifer.writeByte(GreiferEvents.AUF_KISTENHOEHE
 									.ordinal());
@@ -201,7 +212,7 @@ public class Lift {
 						case AUF_CARGOAREA_FAHREN:
 							System.out.println("AUF_CARGOAREA_FAHREN bekommen");
 							System.out.flush();
-							hochziehen(hoehecargo);
+							hochziehen(hoehecargodrauf);
 							dosLift2Greifer.writeByte(GreiferEvents.AUF_CARGOAREA
 									.ordinal());
 							dosLift2Greifer.flush();
@@ -211,6 +222,7 @@ public class Lift {
 							System.out.println("Cargo rein erhalten ");
 							System.out.flush();
 							cargorein(cargodrehen);
+							hochziehen(hoehefahren);
 							//dos.writeByte(GreiferEvents.KISTE_IST_DRAUF.ordinal());
 							//hochziehen(hoehefahren);
 							break;
@@ -218,12 +230,17 @@ public class Lift {
 						case ABLADEN:
 							System.out.println("Befehl ABLADEN bekommen");
 							System.out.flush();
-							hochziehen(50000);
+							new Thread (new Tachocountzahler()).start();
+							hochziehen(hoehecargorunter);
 							System.out.println("Hochgezogen");
 							System.out.flush();
+							break;
+							
+						case CARGO_RAUSWERFEN:
 							dosLift2Greifer.writeByte(GreiferEvents.STARTEN_ABLADEN.ordinal());
 							dosLift2Greifer.flush();
-							cargorein(-20*cargodrehen);
+							Delay.msDelay(1000);							
+							cargorein(-10*cargodrehen);
 							break;
 							
 						case ZUM_EINSAUGEN_RUNTER:

@@ -29,19 +29,18 @@ public class Greifer {
 													// linken Arm; forward ist
 													// rein/raus????
 	static NXTRegulatedMotor MArmRechts = Motor.B;
-	static int aussen = -21000;	// wie viel um nach ganz aussen zu fahren	ERLEDIGT
+	static int aussen = 21000;	// wie viel um nach ganz aussen zu fahren	ERLEDIGT
 	static int greifenKlein = 20; // Wie viel um ein kleines Paket zu greifen
 									// auseinander????
 	static int greifenMittel = 50; // Wie viel um ein mittleres Paket zu
 									// greifen auseinander ????
-	static int greifenGross = -19000; // Wie viel um ein groﬂes Paket zu greifen
-										// auseinander????
+	static int greifenGross = 11500; // Wie viel um ein groﬂes Paket zu greifen auseinander????
+	static int vergroesserung=3500;									// Vergrˆﬂerung befor der lift zum einsaugen runter f‰hrt
 	static int greifen;
-	static int auﬂen = 500;
 	static int kisteBreite;
 	static int kisteTiefe;
 	static int kisteTiefeMittel = 30;
-	static int kisteTiefeGross = 800;
+	static int kisteTiefeGross = 700;
 	private static DataInputStream disGreifer2Fahrer;
 	private static DataOutputStream dosGreifer2Fahrer;
 	private static DataInputStream disGreifer2Lift;
@@ -165,7 +164,9 @@ public class Greifer {
 
 					case ABLADEN:
 						new Thread(new Abladen()).start();
-						break;
+						dosGreifer2Lift.writeByte(GreiferEvents.ABLADEN
+								.ordinal());
+						dosGreifer2Lift.flush();;
 
 					default:
 						LCD.drawString("Unbekannter Befehl", 1, 1);
@@ -270,6 +271,8 @@ public class Greifer {
 			public void run() {
 
 				justieren(kisteBreite);
+				System.out.println(Motor.C.getTachoCount());
+				System.out.flush();
 				// reinArme(9999999,true);
 				try {
 					dosGreifer2Fahrer
@@ -288,8 +291,9 @@ public class Greifer {
 		
 		class FahrerHinten5CM implements Runnable {
 			public void run() {
-
-				justieren(kisteBreite - 1000);
+				reinArme(100,false);
+				
+				justieren(kisteBreite + vergroesserung);
 				try {
 					dosGreifer2Lift.writeByte(GreiferEvents.ZUM_EINSAUGEN_RUNTER
 							.ordinal());
@@ -330,18 +334,21 @@ public class Greifer {
 
 				System.out.println("Befehl ABLADEN bekommen");
 				justieren(aussen);
-				//System.out.println("Nach justieren");
-				//System.out.flush();
 				try {
-					dosGreifer2Lift.writeByte(GreiferEvents.ABLADEN
-							.ordinal());
+					dosGreifer2Lift.writeByte(GreiferEvents.CARGO_RAUSWERFEN.ordinal());				
 					dosGreifer2Lift.flush();
 				} catch (IOException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
-		
-				System.out.println(" Befehl ABLADEN an lift gesendet");
+				reinArme(-10*kisteTiefe,true);
+				
+				//System.out.println("Nach justieren");
+				//System.out.flush();
+				
+				
+				
+				System.out.println(" Befehl CARGO_RAUSWERFEN an lift gesendet");
 				System.out.flush();
 			}
 		}
@@ -397,7 +404,7 @@ public class Greifer {
 							break;
 
 						case STARTEN_ABLADEN:
-							reinArme(-20*kisteTiefe,true); // Signal zum runterfahren und
+							reinArme(-10*kisteTiefeGross,true); // Signal zum runterfahren und
 												// auswerfen an Lift
 							break;
 
@@ -411,14 +418,11 @@ public class Greifer {
 //							break;
 
 						case STOP:
-							try {
-								dosGreifer2Fahrer.writeByte(GreiferEvents.STOP
+						
+								dosGreifer2Fahrer.writeByte(GreiferEvents.KILLER
 										.ordinal());
 								dosGreifer2Fahrer.flush();
-							} catch (IOException e) {
-								// TODO Auto-generated catch block
-								e.printStackTrace();
-							}
+							
 							System.exit(0);
 							break;
 							
