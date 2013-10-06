@@ -67,6 +67,7 @@ public class NXTHGNXTNavigationModel extends NXTHGNavigationModel implements
 	protected boolean sendMoveStart = false, sendMoveStop = true;
 	private Thread receiver;
 	private boolean running = true;
+	private boolean erstesmal = true;
 	private Thread connectorGreifer;
 	private Thread retter;
 	public DataInputStream disFahrer2Greifer;
@@ -421,6 +422,13 @@ public class NXTHGNXTNavigationModel extends NXTHGNavigationModel implements
 							navigator.followPath(path);
 						break;
 					case START_NAVIGATOR:
+						
+						if (erstesmal) {
+							dosFahrer2Greifer.writeByte(GreiferEvents.ERSTES_MAL_AUSEINANDER.ordinal());
+							dosFahrer2Greifer.flush();
+							erstesmal = false;
+							
+						}
 						// System.out.println(Motor.A.getAcceleration());
 						// System.out.flush();
 						// Delay.msDelay(2000);

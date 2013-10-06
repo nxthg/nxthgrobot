@@ -50,6 +50,9 @@ public class Greifer {
 	private Thread receiverLift;
 	private static Greifer model;
 	static boolean unverbunden = true;
+	
+	TouchSensor TouchRechts = new TouchSensor (SensorPort.S2);
+	TouchSensor TouchLinks = new TouchSensor (SensorPort.S1);
 
 	public Greifer() {
 
@@ -139,6 +142,14 @@ public class Greifer {
 					case FAHRER_VORNE_5CM:
 						new Thread(new FahrerVorne5CM()).start();
 						break;
+						
+						
+						
+					case EINZIEHEN: 
+						new Thread(new Einziehen()).start();
+						dosGreifer2Lift.writeByte(GreiferEvents.EINZIEHEN.ordinal());
+						dosGreifer2Lift.flush();
+						break;
 
 						//					case STOP_EINZIEHEN:
 //						stopArme();
@@ -166,7 +177,11 @@ public class Greifer {
 						new Thread(new Abladen()).start();
 						dosGreifer2Lift.writeByte(GreiferEvents.ABLADEN
 								.ordinal());
-						dosGreifer2Lift.flush();;
+						dosGreifer2Lift.flush();
+						
+					case ERSTES_MAL_AUSEINANDER:
+						new Thread (new ErstesMalAuseinander()).start();
+						break;
 
 					default:
 						LCD.drawString("Unbekannter Befehl", 1, 1);
@@ -217,6 +232,14 @@ public class Greifer {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
+
+			}
+		}
+		
+		class Einziehen implements Runnable {
+			public void run() {
+			Thread.yield();
+			reinArme(kisteTiefe, true);
 
 			}
 		}
@@ -289,6 +312,13 @@ public class Greifer {
 			}
 		}
 		
+		class ErstesMalAuseinander implements Runnable {
+			public void run() {
+				justieren(greifenGross);
+			}
+		}
+		
+		
 		class FahrerHinten5CM implements Runnable {
 			public void run() {
 				reinArme(100,false);
@@ -313,8 +343,21 @@ public class Greifer {
 			public void run() {
 
 				justieren(kisteBreite);
-				reinArme(kisteTiefe, false);
-				
+				reinArme(99999, true);
+				int einsaug = 1;
+				while (einsaug <= 2) {
+					
+					if (TouchRechts.isPressed()){
+						Motor.A.stop();
+						einsaug = einsaug + 1;
+					}
+					
+					if (TouchLinks.isPressed()){
+						Motor.B.stop();
+						einsaug = einsaug + 1;
+					}
+				Delay.msDelay(100);
+				}
 				 try {
 					 dosGreifer2Fahrer.writeByte(GreiferEvents.FAHR_ZURUECK.ordinal());
 					dosGreifer2Fahrer.flush();

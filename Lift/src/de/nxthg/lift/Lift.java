@@ -248,6 +248,9 @@ public class Lift {
 							dosLift2Greifer.writeByte(GreiferEvents.AUF_EINSAUG_HOEHE.ordinal());
 							dosLift2Greifer.flush();
 							break;
+							
+						case EINZIEHEN:
+							cargorein(cargodrehen);
 
 						}
 					}
