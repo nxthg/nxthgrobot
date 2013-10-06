@@ -172,6 +172,12 @@ public class NXTHGEventPanel extends JPanel implements ActionListener {
 			    case ADD_PATH:
 			
 						for (Waypoint myWaypoint : IssPathes.PATH[Integer.parseInt(param1.getText())-1]) {
+							if (param1.getText()=="3"){
+								model.setTravelSpeed(100);
+							}
+							else {
+								model.setTravelSpeed(30);
+							}
 							model.addWaypoint(myWaypoint);	
 						}
 			        break;
