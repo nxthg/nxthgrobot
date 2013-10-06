@@ -128,9 +128,11 @@ public class NXTHGEventPanel extends JPanel implements ActionListener {
 			case AUFLADEN_PAKET:
 				label1.setText("Größe:");
 				label1.setVisible(true);
+				param1.setText("3");
 				param1.setVisible(true);
 				label2.setText("Höhe:");
 				label2.setVisible(true);
+				param2.setText("3");
 				param2.setVisible(true);
 			}
 			eventCombo.revalidate();
@@ -170,14 +172,16 @@ public class NXTHGEventPanel extends JPanel implements ActionListener {
 					break;
 			
 			    case ADD_PATH:
-			
-						for (Waypoint myWaypoint : IssPathes.PATH[Integer.parseInt(param1.getText())-1]) {
-							if (param1.getText()=="3"){
-								model.setTravelSpeed(100);
-							}
-							else {
-								model.setTravelSpeed(30);
-							}
+//			    	model.vollSpeed();
+			    	
+			    	if (param1.getText()=="4"){
+						model.setTravelSpeed(100);
+					}
+					else {
+						model.setTravelSpeed(50);
+					}
+			    	
+						for (Waypoint myWaypoint : IssPathes.PATH[Integer.parseInt(param1.getText())-1]) {							
 							model.addWaypoint(myWaypoint);	
 						}
 			        break;

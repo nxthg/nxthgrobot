@@ -9,6 +9,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 
+import de.nxthg.pccontrol.NXTHGNavigationModel.NavEvent;
+
 import lejos.geom.Point;
 import lejos.nxt.remote.FileInfo;
 import lejos.nxt.remote.NXTCommand;
@@ -621,6 +623,20 @@ public class NXTHGPCNavigationModel extends NXTHGNavigationModel {
 		}
 	}
 	
+	
+	public void vollSpeed() {
+		if (!connected) return;
+		try {
+			dos.writeByte(NavEvent.TRAVEL_SPEED.ordinal());
+			dos.writeInt(100);
+			dos.flush();
+			System.out.println("TRAVEL_SPEED 100 gesendet");
+		} catch (IOException ioe) {
+			panel.error("IO Exception in vollSpeed");
+		}
+	}
+	
+	
 	public void paketab() {
 		if (!connected) return;
 		try {
@@ -678,7 +694,7 @@ public class NXTHGPCNavigationModel extends NXTHGNavigationModel {
 		if (!connected) return;
 		try {
 			dos.writeByte(NavEvent.TRAVEL.ordinal());
-			dos.writeFloat(50.0f);
+			dos.writeFloat(2.0f);
 			dos.flush();	
 		} catch (IOException ioe) {
 			panel.error("IO Exception in Fahren");
