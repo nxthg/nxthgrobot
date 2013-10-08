@@ -93,7 +93,7 @@ public class NXTHGMapCommand extends NXTHGNavigationPanel {
 		rightPanel.add(eventPanel, BorderLayout.NORTH);
 		loadPanel.setPreferredSize(new Dimension(300, 80));
 		leftPanel.add(loadPanel);
-		connectPanel.setPreferredSize(new Dimension(300, 90));
+		connectPanel.setPreferredSize(new Dimension(300, 80));
 		leftPanel.add(connectPanel);
 		setHeading = new NXTHGSliderPanel(model, NavEvent.SET_POSE,	"Set Heading:", "Set", 360);
 		setHeading.setPreferredSize(new Dimension(280, 80));

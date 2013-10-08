@@ -745,8 +745,8 @@ public abstract class NXTHGNavigationPanel extends JPanel implements NXTHGMapApp
 		connectPanel.add(nxtName);
 		nxtName.setText(props.getProperty(KEY_DEFAULT_NXT,""));
 		connectPanel.add(connectButton);
-		connectPanel.add(uploadBox);
-		uploadBox.setSelected(false);
+		//connectPanel.add(uploadBox);
+		//uploadBox.setSelected(false);
 		connectPanel.setBorder(BorderFactory.createTitledBorder("Connect"));
 		
 		connectButton.addActionListener(new ActionListener() {

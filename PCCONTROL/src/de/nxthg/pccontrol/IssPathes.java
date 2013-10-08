@@ -8,7 +8,7 @@ public class IssPathes {
  //ERSTER DURCHLAUF:
 	
 	// vom start zur ersten kiste
-	static final Waypoint[] PATH1 = {new Waypoint(150.4, 146.6), new Waypoint(175.4, 146.6)};
+	static final Waypoint[] PATH1 = {new Waypoint(150.4, 149.5), new Waypoint(175.4, 149.5)};
 	
     // von dort zur zweiten kiste
 	static final Waypoint[] PATH2 = {new Waypoint(175.0, 180.2), new Waypoint(175.4, 180.2)};

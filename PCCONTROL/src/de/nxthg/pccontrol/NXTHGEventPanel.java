@@ -175,7 +175,7 @@ public class NXTHGEventPanel extends JPanel implements ActionListener {
 //			    	model.vollSpeed();
 			    	
 			    	if (param1.getText()=="4"){
-						model.setTravelSpeed(100);
+						model.setTravelSpeed(1000);                              
 					}
 					else {
 						model.setTravelSpeed(50);
